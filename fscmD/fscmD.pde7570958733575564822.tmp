@@ -75,18 +75,18 @@ void setup() {
   textSize(40);
   text("loading FSCMd...", width*.4, height*.4);
   s=new Client(this, "localhost", 12340);
-  HDD=new fscmdHeadingDistanceDisplay(400, 500, 200, maxDispFlyDistMeters);
+  HDD=new fscmdHeadingDistanceDisplay(115, 195, 200, maxDispFlyDistMeters);
   OTD=new fscmdOrientationDisplay(650, 0, 700, maxDispFlyDistMeters);
-  MBGBOO=new fscmdMiBarGraphDisplay(0, 0, 50, 3, "overall BNO055 orientation calibration status");
-  MBGBOA=new fscmdMiBarGraphDisplay(50, 0, 35, 3, "BNO055 accel status");
-  MBGBOG=new fscmdMiBarGraphDisplay(85, 0, 35, 3, "BNO055 gyro status");
-  MBGBOM=new fscmdMiBarGraphDisplay(120, 0, 35, 3, "BNO055 mag status");
-  PWG=new fscmdPowerGraphDisplay(375, 0, 272, 100, 3.0, 4.2, 3000);
-  PWRCBG=new fscmdCoBarGraphDisplay(PWG.posx-51, PWG.posy, PWG.sizey, 50, PWG.minval, PWG.maxval, 3.3, "BAT V");
-  FSCMDRSSI=new fscmdCoBarGraphDisplay(160, 2, 50, 50, -100, -15, -80, "FSCM");
-  TRANSRSSI=new fscmdCoBarGraphDisplay(210, 2, 50, 50, -100, -15, -80, "Trans");
+  MBGBOO=new fscmdMiBarGraphDisplay(0, 0, 55, 3, "overall BNO055 orientation calibration status");
+  MBGBOA=new fscmdMiBarGraphDisplay(65, 0, 40, 3, "BNO055 accel status");
+  MBGBOG=new fscmdMiBarGraphDisplay(110, 0, 40, 3, "BNO055 gyro status");
+  MBGBOM=new fscmdMiBarGraphDisplay(155, 0, 40, 3, "BNO055 mag status");
+  PWG=new fscmdPowerGraphDisplay(400, 0, 232, 100, 3.0, 4.2, 3000);
+  PWRCBG=new fscmdCoBarGraphDisplay(PWG.posx-66, PWG.posy, PWG.sizey, PWG.minval, PWG.maxval, 3.3, "BAT V");
+  FSCMDRSSI=new fscmdCoBarGraphDisplay(200, 2, 80, -100, -15, -80, "FSCM");
+  TRANSRSSI=new fscmdCoBarGraphDisplay(270, 2, 80, -100, -15, -80, "Trans");
   //  TBATCGD=new fscmdCoBarGraphDisplay(370, 0, 80, 3.3, 6, 3.5, "T Bat");
-  BSH=new fscmdButton(267, 5, 51, color(0, 150, 0), true, "set home");
+  BSH=new fscmdButton(125, 210, 55, color(0, 150, 0), true, "set home");
   fscmdSetupFscmTComms();//nothing needs to be called in draw()
   s.write("f s c m starting,#");
 }
@@ -153,7 +153,7 @@ void draw() {
     fscmCPitch, 
     fscmCRoll
   };
-  fscmdDisplayInfo(dispMsg, dispVal, 0, 250, 200, 450, 10);
+  fscmdDisplayInfo(dispMsg, dispVal, 0, 424, 200, 275, 10);
   MBGBOO.display(fscmFOriSystemCal);
   MBGBOA.display(fscmFOriAccelCal);
   MBGBOG.display(fscmFOriGyroCal);

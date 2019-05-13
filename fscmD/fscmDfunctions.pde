@@ -145,15 +145,16 @@ void fscmdDisplayInfo(String[] msg, float[] val, int x, int y, int w, int h, int
   }
 }
 class fscmdCoBarGraphDisplay {
-  int posx, posy, sizey;
+  int posx, posy, sizey, sizex;
   float minval, maxval;
   float warnval;
   float val;
   String msg;
-  fscmdCoBarGraphDisplay(int Posx, int Posy, int Sizey, float Minval, float Maxval, float Warnval, String Msg) {
+  fscmdCoBarGraphDisplay(int Posx, int Posy, int Sizey, int Sizex, float Minval, float Maxval, float Warnval, String Msg) {
     posx=Posx;
     posy=Posy;
     sizey=Sizey;
+    sizex=Sizex;
     minval=Minval;
     maxval=Maxval;
     warnval=Warnval;
@@ -165,24 +166,21 @@ class fscmdCoBarGraphDisplay {
     strokeWeight(1);
     stroke(255);
     fill(0);
-    rect(posx, posy, 65, sizey);
+    rect(posx, posy, sizex, sizey);
     noStroke();
     colorMode(HSB);
     fill(map(val, minval, maxval, 0, 70), 255, 255);
     colorMode(RGB);
-    rect(posx, posy+sizey, 65, -map(val, minval, maxval, 0, sizey));
+    rect(posx, posy+sizey, sizex, -map(val, minval, maxval, 0, sizey));
     fill(255);
     if (Val<warnval&&frameCount%15<3) {
       fill(255, 50, 50);
     }
-    textSize(22);
-    text(nf(Val), posx, posy, 65, 28);
-    fill(0);
-    stroke(255);
-    rect(posx, posy+sizey, 65, 25);
-    textSize(20);
-    fill(255);
-    text(msg, posx+1, posy+sizey+20);
+    textSize(17);
+    text(nf(Val), posx, posy, sizex, 28);
+    textSize(14);
+    fill(155);
+    text(msg, posx+1, posy+sizey);
   }
 }
 class fscmdPowerGraphDisplay {
@@ -264,7 +262,7 @@ class fscmdMiBarGraphDisplay {
     }
     rect(posx, posy+size, size, size);
     fill(255);
-    textSize(10);
+    textSize(8);
     textLeading(10);
     text(msg, posx, posy+size, size, size);
   }

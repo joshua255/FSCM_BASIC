@@ -1,3 +1,20 @@
+import de.fhpotsdam.unfolding.*;
+import de.fhpotsdam.unfolding.core.*;
+import de.fhpotsdam.unfolding.data.*;
+import de.fhpotsdam.unfolding.events.*;
+import de.fhpotsdam.unfolding.geo.*;
+import de.fhpotsdam.unfolding.interactions.*;
+import de.fhpotsdam.unfolding.mapdisplay.*;
+import de.fhpotsdam.unfolding.mapdisplay.shaders.*;
+import de.fhpotsdam.unfolding.marker.*;
+import de.fhpotsdam.unfolding.providers.*;
+import de.fhpotsdam.unfolding.texture.*;
+import de.fhpotsdam.unfolding.tiles.*;
+import de.fhpotsdam.unfolding.ui.*;
+import de.fhpotsdam.unfolding.utils.*;
+import de.fhpotsdam.utils.*;
+import de.fhpotsdam.unfolding.mapdisplay.MapDisplayFactory;
+import processing.net.*;
 /////////////////////////////reusable functions for fscm************************************************************
 float[] fscmFEul=new float[3];
 int fscmdTSi=0;
@@ -8,6 +25,33 @@ boolean mousePushed=false;
 boolean keyPushed=false;
 import processing.serial.*;
 Serial fscmTS;
+class fscmdMapDisplay {
+  int x;
+  int y;
+  int s;
+  float maxDispFlyDistMeters;
+  UnfoldingMap map;
+  fscmdMapDisplay(int X, int Y, int S, float MaxDispFlyDistMeters) {
+    x=X;
+    y=Y;
+    s=S;
+    maxDispFlyDistMeters=MaxDispFlyDistMeters;
+    map = new UnfoldingMap(fscmD.this, x, y, s, s, new Microsoft.HybridProvider());
+    map.zoomAndPanTo(18, new Location(44, -123));
+    MapUtils.createDefaultEventDispatcher(fscmD.this, map);
+  }
+  void display() {
+    map.panTo(new Location(fscmFGpsLat, fscmFGpsLon));
+    map.draw();
+    strokeWeight(1);
+    stroke(0, 255, 0);
+    noFill();
+    ellipse(x+s/2, y+s/2, 10, 10);
+    line(x+s/2+10, y+s/2, x+s/2-10, y+s/2);
+    line(x+s/2, y+s/2+10, x+s/2, y+s/2-10);
+  }
+}
+
 class fscmdButton {
   int x;
   int y;

@@ -29,7 +29,7 @@ unsigned long fscmFLastSentCallFscmT = 0;
 unsigned long lastSentFscmCMillis = 0;
 boolean gotFscmTMsgLast = false;
 
-int fscmFGpsAlt = 0;
+float fscmFGpsAlt = 0;
 float fscmFAltiVal = 0;
 
 float fscmHomeLat = 45;

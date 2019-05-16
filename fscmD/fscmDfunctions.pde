@@ -58,15 +58,16 @@ class fscmdMapDisplay {
     popMatrix();
     mpg=createGraphics(s, s, P2D);
     mpg.beginDraw();
-    marker(map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y, color(0, 255, 0));
+    marker(map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y, color(0, 255, 0), "home", "0", nf((360+DDOFHeading-fscmFHeadFmHome)%360-180, 3, 0), nf(fscmFDistMeters));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters/4, color(0, 200, 0));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters/2, color(200, 200, 0));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters, color(200, 0, 0));
+    strokeWeight(2);
+    stroke(0, 255, 0, 150);
+    mpg.line(map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y, map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).x-x, map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).y-y);
     mpg.pushMatrix(); 
-    mpg.translate(map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).x-x, map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).y-y); 
+    mpg.translate(map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).x-x, map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).y-y);
     mpg.stroke(100, 255, 100);
-    //    mpg.line(0, 0, 0, distDispPixels);
-    //  mpg.translate(0, distDispPixels); 
     mpg.pushMatrix();
     mpg.strokeWeight(1);
     mpg.rotate(PI+radians(DDOFHeading-DHomeHeading)); 
@@ -101,13 +102,18 @@ class fscmdMapDisplay {
     ScreenPosition pos2 = map.getScreenPosition(tempLocation);
     return dist(pos1.x, pos1.y, pos2.x, pos2.y);
   }
-  void marker(float X, float Y, color C) {
+  void marker(float X, float Y, color C, String Name, String Alt, String Heading, String Distance) {
     mpg.strokeWeight(1);
     mpg.stroke(C);
     mpg.fill(C, 120);
     mpg.ellipse(X, Y, 10, 10);
     mpg.line(X+10, Y, X-10, Y);
     mpg.line(X, Y+10, X, Y-10);
+    mpg.textSize(8);
+    mpg.text(Alt, X+6, Y+6);
+    mpg.text(Name, X-6-textWidth(Name), Y+6);
+    mpg.text(Heading, X-6-textWidth(Heading), Y+9);
+    mpg.text(Distance, X+6, Y+14);
   }
 }
 class fscmdButton {

@@ -95,7 +95,7 @@ void draw() {
   fscmdHomeSet();
   setHome=BSH.display(setHome);
   runWarnings();
-  MD.display(fscmFGpsLat,fscmFGpsLon,fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters, fscmFEul[0], fscmFGpsHeading);
+  MD.display(fscmFGpsLat, fscmFGpsLon, fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters, fscmFEul[0], fscmFGpsHeading, fscmHomeLat, fscmHomeLon);
   HDD.display(fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters, fscmFEul[0], fscmFGpsHeading); //float DHomeHeading, float DHeadingFromHome, float DDistMeters, float DDOFHeading, float DGPSHeading
   OTD.display(fscmFOriQuatW, fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFGpsHeading, fscmFGAlt, fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters); //float Oriqw, float Oriqx, float Oriqy, float Oriqz, float GpsHeading, float CGAltitude, float DHomeHeading, float DHeadingFromHome, float DDistMeters
   String[] dispMsg={

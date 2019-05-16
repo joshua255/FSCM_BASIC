@@ -42,45 +42,50 @@ class fscmdMapDisplay {
     map.zoomAndPanTo(10, new Location(44, -123));
     MapUtils.createDefaultEventDispatcher(fscmD.this, map);
   }
-  void display(float fscmFGpsLat, float fscmFGpsLon, float DHomeHeading, float DHeadingFromHome, float DDistMeters, float DDOFHeading, float DGPSHeading) {
-    map.draw();
+  void display(float FscmFGpsLat, float FscmFGpsLon, float DHomeHeading, float DDOFHeading, float DGPSHeading, float FscmHomeLat, float FscmHomeLon) {
     if (fscmHomeSet) {
-      map.panTo(new Location(fscmFGpsLat, fscmFGpsLon));
+      map.panTo(new Location(FscmHomeLat, FscmHomeLon));
     }
     map.rotateTo(-radians(DHomeHeading));
-    mpg=createGraphics(s, s, P2D);
-    mpg.beginDraw();
-    marker(map.getScreenPosition(new Location(fscmFGpsLat, fscmFGpsLon)).x-x, map.getScreenPosition(new Location(fscmFGpsLat, fscmFGpsLon)).y-y, color(0, 255, 0));
-    circleLocRDm(new Location(fscmFGpsLat, fscmFGpsLon), maxDispFlyDistMeters/4, color(0, 200, 0));
-    circleLocRDm(new Location(fscmFGpsLat, fscmFGpsLon), maxDispFlyDistMeters/2, color(200, 200, 0));
-    circleLocRDm(new Location(fscmFGpsLat, fscmFGpsLon), maxDispFlyDistMeters, color(200, 0, 0));
-    mpg.endDraw();
+    map.draw();
     stroke(255);
     strokeWeight(1);
-    image(mpg, x, y);
     pushMatrix(); 
     translate(x+s/2, y+s/2); 
     rotate(PI-radians(DHomeHeading)); 
     fill(155, 0, 0); 
-    triangle(-s*.012, s*.43, s*.012, s*.43, 0, s*.49); //north
+    triangle(-s*.008, s*.45, s*.008, s*.45, 0, s*.49); //north
     popMatrix();
-    
-    pushMatrix(); 
-    translate(x+s/2,y+s/2); 
-    rotate(PI-radians(DHomeHeading-DHeadingFromHome)); 
-    int distDispPixels=int(constrain(map(DDistMeters, 0, maxDispFlyDistMeters, 0, s/2-s/25), 0, (s/2)-s/25)); //flyer
-    translate(0, distDispPixels); 
-    rotate(radians(dDOFHeading-dHeadingFromHome)); 
-    fill(255, 205, 255); 
-    triangle(-size/35, 0, size/35, 0, 0, size/12); 
-    fill(255, 0, 0); 
-    ellipse(0, 0, 6, 6); 
-    rotate(-radians(dDOFHeading-dHeadingFromHome)); 
-    rotate(radians((dGPSHeading-dHeadingFromHome))); 
-    strokeWeight(2); 
-    stroke(0, 0, 255); 
-    line(0, 0, 0, size/11); //gps plane direction
-    popMatrix();
+    mpg=createGraphics(s, s, P2D);
+    mpg.beginDraw();
+    marker(map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y, color(0, 255, 0));
+    circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters/4, color(0, 200, 0));
+    circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters/2, color(200, 200, 0));
+    circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters, color(200, 0, 0));
+    mpg.pushMatrix(); 
+    mpg.translate(map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).x-x, map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).y-y); 
+    mpg.stroke(100, 255, 100);
+    //    mpg.line(0, 0, 0, distDispPixels);
+    //  mpg.translate(0, distDispPixels); 
+    mpg.pushMatrix();
+    mpg.strokeWeight(1);
+    mpg.rotate(PI+radians(DDOFHeading-DHomeHeading)); 
+    mpg.fill(255, 255, 255); 
+    mpg.stroke(0);
+    mpg.triangle(-s/75, 0, s/75, 0, 0, s/20);
+    mpg.stroke(255, 255, 255, 180);
+    mpg.strokeWeight(2);
+    mpg.line(0, 0, 0, s);
+    mpg.fill(255, 0, 0); 
+    mpg.ellipse(0, 0, 6, 6);
+    mpg.popMatrix();
+    mpg.rotate(radians((DGPSHeading-DHomeHeading))); 
+    mpg.strokeWeight(2); 
+    mpg.stroke(0, 0, 255, 180); 
+    mpg.line(0, 0, 0, s); //gps plane direction
+    mpg.popMatrix();
+    mpg.endDraw();
+    image(mpg, x, y);
   }
   void circleLocRDm(Location Loc, float R, color C) {
     ScreenPosition pos = map.getScreenPosition(Loc);
@@ -99,7 +104,7 @@ class fscmdMapDisplay {
   void marker(float X, float Y, color C) {
     mpg.strokeWeight(1);
     mpg.stroke(C);
-    mpg.noFill();
+    mpg.fill(C, 120);
     mpg.ellipse(X, Y, 10, 10);
     mpg.line(X+10, Y, X-10, Y);
     mpg.line(X, Y+10, X, Y-10);

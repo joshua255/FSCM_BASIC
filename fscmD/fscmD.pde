@@ -67,7 +67,7 @@ boolean altwarningsilenced=false;
 ////////////////////////////////////////////////////////////////////////////////////
 void setup() {
   noSmooth();
-  frameRate(15);
+  frameRate(10);
   size(1350, 700, P2D);//P2D is important
   background(0);
   stroke(255);

@@ -48,8 +48,8 @@ class fscmdMapDisplay {
     }
     map.rotateTo(-radians(DHomeHeading));
     map.draw();
-    stroke(255);
     strokeWeight(1);
+    stroke(255);
     pushMatrix(); 
     translate(x+s/2, y+s/2); 
     rotate(PI-radians(DHomeHeading)); 
@@ -58,13 +58,10 @@ class fscmdMapDisplay {
     popMatrix();
     mpg=createGraphics(s, s, P2D);
     mpg.beginDraw();
-    marker(map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y, color(0, 255, 0), "home", "0", nf((360+DDOFHeading-fscmFHeadFmHome)%360-180, 3, 0), nf(fscmFDistMeters));
+    marker(map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y, color(0, 255, 0), "home", "0", nf((720-DDOFHeading+fscmFHeadFmHome)%360-180, 0, 3), nf(fscmFDistMeters));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters/4, color(0, 200, 0));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters/2, color(200, 200, 0));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters, color(200, 0, 0));
-    strokeWeight(2);
-    stroke(0, 255, 0, 150);
-    mpg.line(map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y, map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).x-x, map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).y-y);
     mpg.pushMatrix(); 
     mpg.translate(map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).x-x, map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).y-y);
     mpg.stroke(100, 255, 100);
@@ -85,6 +82,9 @@ class fscmdMapDisplay {
     mpg.stroke(0, 0, 255, 180); 
     mpg.line(0, 0, 0, s); //gps plane direction
     mpg.popMatrix();
+    mpg.strokeWeight(1);
+    mpg.stroke(255, 200);
+    mpg.line(map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).x-x, map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).y-y, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y);
     mpg.endDraw();
     image(mpg, x, y);
   }
@@ -95,6 +95,10 @@ class fscmdMapDisplay {
     mpg.strokeWeight(1);
     mpg.stroke(C);
     mpg.ellipse(pos.x-x, pos.y-y, r*2, r*2);
+    mpg.fill(C);
+    mpg.textSize(9);
+    mpg.textAlign(CENTER);
+    mpg.text(int(R), pos.x-x, pos.y-y-r-10);
   } 
   float getDistance(Location mainLocation, float mLength) {
     Location tempLocation = GeoUtils.getDestinationLocation(mainLocation, 90, mLength/1000.00);
@@ -109,11 +113,13 @@ class fscmdMapDisplay {
     mpg.ellipse(X, Y, 10, 10);
     mpg.line(X+10, Y, X-10, Y);
     mpg.line(X, Y+10, X, Y-10);
-    mpg.textSize(8);
-    mpg.text(Alt, X+6, Y+6);
-    mpg.text(Name, X-6-textWidth(Name), Y+6);
-    mpg.text(Heading, X-6-textWidth(Heading), Y+9);
-    mpg.text(Distance, X+6, Y+14);
+    mpg.fill(C);
+    mpg.textSize(10);
+    mpg.textAlign(CENTER);
+    mpg.text(Alt, X+9+textWidth(Alt)/2, Y-9);
+    mpg.text(Distance, X+9+textWidth(Distance)/2, Y+11);
+    mpg.text(Name, X-4-textWidth(Name)/2, Y-9);
+    mpg.text(Heading, X-4-textWidth(Heading)/2, Y+11);
   }
 }
 class fscmdButton {

@@ -1,6 +1,6 @@
-import processing.net.*;
 Client s;
 fscmdHeadingDistanceDisplay HDD;
+fscmdMapDisplay MD;
 fscmdOrientationDisplay OTD;
 fscmdMiBarGraphDisplay MBGBOO;
 fscmdMiBarGraphDisplay MBGBOA;
@@ -64,18 +64,18 @@ long lastwarnedbattery=0;
 long lastWarned=0;
 boolean altwarningsilenced=false;
 ///////////////////////////values to send
-
 ////////////////////////////////////////////////////////////////////////////////////
 void setup() {
   noSmooth();
-  frameRate(15);
+  frameRate(10);
   size(1350, 700, P2D);//P2D is important
   background(0);
   stroke(255);
   textSize(40);
   text("loading FSCMd...", width*.4, height*.4);
   s=new Client(this, "localhost", 12340);
-  HDD=new fscmdHeadingDistanceDisplay(400, 500, 200, maxDispFlyDistMeters);
+  MD=new fscmdMapDisplay(173, 225, 475, maxDispFlyDistMeters);
+  HDD=new fscmdHeadingDistanceDisplay(200, 150, 120, maxDispFlyDistMeters);
   OTD=new fscmdOrientationDisplay(650, 0, 700, maxDispFlyDistMeters);
   MBGBOO=new fscmdMiBarGraphDisplay(0, 0, 50, 3, "overall BNO055 orientation calibration status");
   MBGBOA=new fscmdMiBarGraphDisplay(50, 0, 35, 3, "BNO055 accel status");
@@ -95,6 +95,7 @@ void draw() {
   fscmdHomeSet();
   setHome=BSH.display(setHome);
   runWarnings();
+  MD.display(fscmFGpsLat, fscmFGpsLon, fscmHomeHeading, fscmFEul[0], fscmFGpsHeading, fscmHomeLat, fscmHomeLon);
   HDD.display(fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters, fscmFEul[0], fscmFGpsHeading); //float DHomeHeading, float DHeadingFromHome, float DDistMeters, float DDOFHeading, float DGPSHeading
   OTD.display(fscmFOriQuatW, fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFGpsHeading, fscmFGAlt, fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters); //float Oriqw, float Oriqx, float Oriqy, float Oriqz, float GpsHeading, float CGAltitude, float DHomeHeading, float DHeadingFromHome, float DDistMeters
   String[] dispMsg={
@@ -153,7 +154,7 @@ void draw() {
     fscmCPitch, 
     fscmCRoll
   };
-  fscmdDisplayInfo(dispMsg, dispVal, 0, 250, 200, 450, 10);
+  fscmdDisplayInfo(dispMsg, dispVal, 0, 250, 170, 450, 10);
   MBGBOO.display(fscmFOriSystemCal);
   MBGBOA.display(fscmFOriAccelCal);
   MBGBOG.display(fscmFOriGyroCal);

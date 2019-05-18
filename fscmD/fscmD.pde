@@ -1,5 +1,5 @@
 Client s;
-fscmdHeadingDistanceDisplay HDD;
+//fscmdHeadingDistanceDisplay HDD;
 fscmdMapDisplay MD;
 fscmdOrientationDisplay OTD;
 fscmdMiBarGraphDisplay MBGBOO;
@@ -54,8 +54,8 @@ float fscmCPitch=0.000;
 float fscmCRoll=0.000;
 //////////////////////////////setsometimes
 float fscmHomeHeading = 0.000;
-float fscmHomeLat = 0.0000;
-float fscmHomeLon = 0.0000;
+float fscmHomeLat = 0.00000;
+float fscmHomeLon = 0.00000;
 /////////////////////////////fscmDVars
 boolean setHome=false;
 int numWarnings=1;
@@ -74,8 +74,9 @@ void setup() {
   textSize(40);
   text("loading FSCMd...", width*.4, height*.4);
   s=new Client(this, "localhost", 12340);
+  setupPoints();
   MD=new fscmdMapDisplay(173, 225, 475, maxDispFlyDistMeters);
-  HDD=new fscmdHeadingDistanceDisplay(200, 150, 120, maxDispFlyDistMeters);
+  // HDD=new fscmdHeadingDistanceDisplay(200, 150, 120, maxDispFlyDistMeters);
   OTD=new fscmdOrientationDisplay(650, 0, 700, maxDispFlyDistMeters);
   MBGBOO=new fscmdMiBarGraphDisplay(0, 0, 50, 3, "overall BNO055 orientation calibration status");
   MBGBOA=new fscmdMiBarGraphDisplay(50, 0, 35, 3, "BNO055 accel status");
@@ -96,7 +97,7 @@ void draw() {
   setHome=BSH.display(setHome);
   runWarnings();
   MD.display(fscmFGpsLat, fscmFGpsLon, fscmHomeHeading, fscmFEul[0], fscmFGpsHeading, fscmHomeLat, fscmHomeLon);
-  HDD.display(fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters, fscmFEul[0], fscmFGpsHeading); //float DHomeHeading, float DHeadingFromHome, float DDistMeters, float DDOFHeading, float DGPSHeading
+  //HDD.display(fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters, fscmFEul[0], fscmFGpsHeading); //float DHomeHeading, float DHeadingFromHome, float DDistMeters, float DDOFHeading, float DGPSHeading
   OTD.display(fscmFOriQuatW, fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFGpsHeading, fscmFGAlt, fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters); //float Oriqw, float Oriqx, float Oriqy, float Oriqz, float GpsHeading, float CGAltitude, float DHomeHeading, float DHeadingFromHome, float DDistMeters
   String[] dispMsg={
     "home set", 

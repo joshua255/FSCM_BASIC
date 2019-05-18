@@ -16,6 +16,11 @@ import de.fhpotsdam.utils.*;
 import de.fhpotsdam.unfolding.mapdisplay.MapDisplayFactory;
 import processing.net.*;
 /////////////////////////////reusable functions for fscm************************************************************
+Table points;
+int pointHovered=-1;
+int pointClicked=-1;
+boolean clickpoint=false;
+boolean hoverpoint=false;
 float[] fscmFEul=new float[3];
 int fscmdTSi=0;
 String[] fscmdTSInfo;
@@ -25,6 +30,13 @@ boolean mousePushed=false;
 boolean keyPushed=false;
 import processing.serial.*;
 Serial fscmTS;
+void setupPoints() {
+  points = new Table();
+  points.addColumn("ID", Table.INT);
+  points.addColumn("Latitude", Table.FLOAT);
+  points.addColumn("Longitude", Table.FLOAT);
+  points.addColumn("Altitude", Table.FLOAT);
+}
 class fscmdMapDisplay {
   int x;
   int y;
@@ -39,8 +51,9 @@ class fscmdMapDisplay {
     maxDispFlyDistMeters=MaxDispFlyDistMeters;
     map = new UnfoldingMap(fscmD.this, x, y, s, s, new Microsoft.HybridProvider());
     map.setZoomRange(4, 18);
-    map.zoomAndPanTo(10, new Location(44, -123));
+    map.zoomAndPanTo(10, new Location(fscmHomeLon, fscmHomeLat));
     MapUtils.createDefaultEventDispatcher(fscmD.this, map);
+    mpg=createGraphics(s, s, P2D);
   }
   void display(float FscmFGpsLat, float FscmFGpsLon, float DHomeHeading, float DDOFHeading, float DGPSHeading, float FscmHomeLat, float FscmHomeLon) {
     if (fscmHomeSet) {
@@ -56,9 +69,27 @@ class fscmdMapDisplay {
     fill(155, 0, 0); 
     triangle(-s*.008, s*.45, s*.008, s*.45, 0, s*.49); //north
     popMatrix();
-    mpg=createGraphics(s, s, P2D);
+    if (mousePushed&&mouseButton==RIGHT&&mouseX>x&&mouseX<x+s&&mouseY>y&&mouseY<y+s) {
+      Location ploc= map.getLocationFromScreenPosition(mouseX, mouseY);
+      points.addRow();
+      points.setInt(points.getRowCount()-1, "ID", points.getRowCount()-1);
+      points.setFloat(points.getRowCount()-1, "Latitude", ploc.getLat());
+      points.setFloat(points.getRowCount()-1, "Longitude", ploc.getLon());
+    }
     mpg.beginDraw();
-    marker(map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y, color(0, 255, 0), "home", "0", nf((720-DDOFHeading+fscmFHeadFmHome)%360-180, 0, 3), nf(fscmFDistMeters));
+    mpg.clear();
+    for (int i=1; i<points.getRowCount(); i++) {
+      marker(i, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-x, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-y, color(255, 255, 50), nf(points.getInt(i, "ID")), nf(points.getFloat(i, "Altitude"), 0, 1), nf((540-DDOFHeading+degrees((float)GeoUtils.getAngleBetween(new Location(FscmFGpsLat, FscmFGpsLon), new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))))%360-180, 0, 2), str((int)(1000.0000*GeoUtils.getDistance(FscmFGpsLat, FscmFGpsLon, points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))));
+    }
+    if (clickpoint==false&&mousePushed) {
+      pointClicked=-1;
+    }
+    clickpoint=false;
+    if (hoverpoint==false) {
+      pointHovered=-1;
+    }
+    hoverpoint=false;
+    marker(0, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y, color(0, 255, 0), "home", "0", nf((720-DDOFHeading+fscmFHeadFmHome)%360-180, 0, 3), nf(fscmFDistMeters));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters/4, color(0, 200, 0));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters/2, color(200, 200, 0));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters, color(200, 0, 0));
@@ -67,7 +98,7 @@ class fscmdMapDisplay {
     mpg.stroke(100, 255, 100);
     mpg.pushMatrix();
     mpg.strokeWeight(1);
-    mpg.rotate(PI+radians(DDOFHeading-DHomeHeading)); 
+    mpg.rotate(PI+radians(DDOFHeading-DHomeHeading));
     mpg.fill(255, 255, 255); 
     mpg.stroke(0);
     mpg.triangle(-s/75, 0, s/75, 0, 0, s/20);
@@ -77,7 +108,7 @@ class fscmdMapDisplay {
     mpg.fill(255, 0, 0); 
     mpg.ellipse(0, 0, 6, 6);
     mpg.popMatrix();
-    mpg.rotate(radians((DGPSHeading-DHomeHeading))); 
+    mpg.rotate(PI+radians((DGPSHeading-DHomeHeading)));
     mpg.strokeWeight(2); 
     mpg.stroke(0, 0, 255, 180); 
     mpg.line(0, 0, 0, s); //gps plane direction
@@ -98,7 +129,7 @@ class fscmdMapDisplay {
     mpg.fill(C);
     mpg.textSize(9);
     mpg.textAlign(CENTER);
-    mpg.text(int(R), pos.x-x, pos.y-y-r-10);
+    mpg.text(int(R), pos.x-x, pos.y-y-r-5);
   } 
   float getDistance(Location mainLocation, float mLength) {
     Location tempLocation = GeoUtils.getDestinationLocation(mainLocation, 90, mLength/1000.00);
@@ -106,13 +137,37 @@ class fscmdMapDisplay {
     ScreenPosition pos2 = map.getScreenPosition(tempLocation);
     return dist(pos1.x, pos1.y, pos2.x, pos2.y);
   }
-  void marker(float X, float Y, color C, String Name, String Alt, String Heading, String Distance) {
+  void marker(int i, float X, float Y, color C, String Name, String Alt, String Heading, String Distance) {
     mpg.strokeWeight(1);
     mpg.stroke(C);
     mpg.fill(C, 120);
-    mpg.ellipse(X, Y, 10, 10);
     mpg.line(X+10, Y, X-10, Y);
     mpg.line(X, Y+10, X, Y-10);
+    if (sq(mouseX-(x+X))+sq(mouseY-(y+Y))<=sq(10)) {
+      pointHovered=i;
+      hoverpoint=true;      
+      if (mousePressed&&mouseButton==LEFT) {
+        clickpoint=true;
+      }
+      if (mousePushed&&mouseButton==LEFT&&pointClicked==i&&i>0) {
+        pointHovered=-1;
+        pointClicked=-1;
+        points.removeRow(i);
+        for (int j=i; j<points.getRowCount(); j++) {
+          points.setInt(j, "ID", j);
+        }
+      }
+      if (mousePressed&&mouseButton==LEFT) {
+        pointClicked=i;
+      }
+    }
+    if (pointHovered==i) {
+      mpg.fill(255);
+    }
+    if (pointClicked==i) {
+      mpg.fill(200);
+    }
+    mpg.ellipse(X, Y, 10, 10);
     mpg.fill(C);
     mpg.textSize(10);
     mpg.textAlign(CENTER);

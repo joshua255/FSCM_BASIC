@@ -37,6 +37,74 @@ void setupPoints() {
   points.addColumn("Longitude", Table.FLOAT);
   points.addColumn("Altitude", Table.FLOAT);
 }
+class fscmdMapStatus {
+  int x;
+  int y;
+  int w;
+  int h;
+  int sel=-1;
+  String str="";
+  fscmdMapStatus(int X, int Y, int W, int H) {
+    x=X;
+    y=Y;
+    w=W;
+    h=H;
+  }
+  void display(Table Points) {
+    strokeWeight(0);
+    fill(30);
+    rect(x, y, w, h);
+    if (pointClicked>0) {
+      fill(255);
+      textSize(10);
+      text("Latitude", 3, y+10);
+      text(nf(points.getFloat(pointClicked, "Latitude"), 0, 6), 3, y+20);
+      text("Longitude", 3, y+30);
+      text(nf(points.getFloat(pointClicked, "Longitude"), 0, 6), 3, y+40);
+      text("Altitude", 3, y+50);
+      points.setFloat(pointClicked, "Altitude", textBox(pointClicked, points.getFloat(pointClicked, "Altitude"), 3, y+50, w-6));
+    }
+  }
+  float textBox(int pc, float val, int x, int y, int w) {
+    if (mousePressed&&mouseX>=x&&mouseX<=x+w&&mouseY>=y&&mouseY<=y+10) {
+      sel=pc;
+      str="";
+      //if (str=="") {
+      //  str=str(val);
+      //}
+    }
+    if (keyPushed&&key==ENTER) {
+      sel=-1;
+    }
+    if (sel==pc) {
+      stroke(255);
+      if (((key==45||key ==46||(key>=48&&key<=57)) && (key != CODED)&&keyPushed&&textWidth(str)<w)) {
+        str+=key;
+      }
+      if (keyPushed&&key==BACKSPACE&&str.length()>0) {
+        str=str.substring(0, str.length()-1);
+      }
+    } else {
+      stroke(30);
+      if (str!=""&&float(str)==float(str)) {
+        val=float(str);
+      }
+      str="";
+    }
+    fill(15);
+    rect(x, y, w, 10);      
+    textSize(10);
+    textAlign(LEFT);
+    if (sel==pc) {
+      fill(125);
+      text(str, x, y+10);
+    } else {
+      fill(255);
+      text(val, x-4, y+10);
+    }
+    return val;
+  }
+}
 class fscmdMapDisplay {
   int x;
   int y;
@@ -81,7 +149,7 @@ class fscmdMapDisplay {
     for (int i=1; i<points.getRowCount(); i++) {
       marker(i, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-x, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-y, color(255, 255, 50), nf(points.getInt(i, "ID")), nf(points.getFloat(i, "Altitude"), 0, 1), nf((540-DDOFHeading+degrees((float)GeoUtils.getAngleBetween(new Location(FscmFGpsLat, FscmFGpsLon), new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))))%360-180, 0, 2), str((int)(1000.0000*GeoUtils.getDistance(FscmFGpsLat, FscmFGpsLon, points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))));
     }
-    if (clickpoint==false&&mousePushed) {
+    if (clickpoint==false&&mousePushed&&mouseX>x&&mouseX<x+s&&mouseY>y&&mouseY<y+s) {
       pointClicked=-1;
     }
     clickpoint=false;
@@ -143,34 +211,41 @@ class fscmdMapDisplay {
     mpg.fill(C, 120);
     mpg.line(X+10, Y, X-10, Y);
     mpg.line(X, Y+10, X, Y-10);
-    if (sq(mouseX-(x+X))+sq(mouseY-(y+Y))<=sq(10)) {
+    mpg.textSize(10);
+    mpg.textAlign(CENTER);
+    if (sq(mouseX-(x+X))+sq(mouseY-(y+Y))<=sq(10)&&!hoverpoint) {
       pointHovered=i;
       hoverpoint=true;      
       if (mousePressed&&mouseButton==LEFT) {
         clickpoint=true;
       }
       if (mousePushed&&mouseButton==LEFT&&pointClicked==i&&i>0) {
-        pointHovered=-1;
-        pointClicked=-1;
-        points.removeRow(i);
-        for (int j=i; j<points.getRowCount(); j++) {
+        mousePushed=false;
+        points.removeRow(pointClicked);
+        for (int j=pointClicked; j<points.getRowCount(); j++) {
           points.setInt(j, "ID", j);
         }
+        pointHovered=-1;
+        pointClicked=-1;
       }
-      if (mousePressed&&mouseButton==LEFT) {
+      if (mousePushed&&mouseButton==LEFT) {
         pointClicked=i;
       }
     }
     if (pointHovered==i) {
+      if (pointClicked!=i) {
+        mpg.fill(150, 170);
+        mpg.rect(X-4-max(mpg.textWidth(Name), mpg.textWidth(Heading)), Y-20, max(mpg.textWidth(Name), mpg.textWidth(Heading))+15+max(mpg.textWidth(Alt), mpg.textWidth(Distance)), 35);
+      }
       mpg.fill(255);
     }
     if (pointClicked==i) {
+      mpg.fill(150, 220);
+      mpg.rect(X-4-max(mpg.textWidth(Name), mpg.textWidth(Heading)), Y-20, max(mpg.textWidth(Name), mpg.textWidth(Heading))+15+max(mpg.textWidth(Alt), mpg.textWidth(Distance)), 35);
       mpg.fill(200);
     }
     mpg.ellipse(X, Y, 10, 10);
     mpg.fill(C);
-    mpg.textSize(10);
-    mpg.textAlign(CENTER);
     mpg.text(Alt, X+9+textWidth(Alt)/2, Y-9);
     mpg.text(Distance, X+9+textWidth(Distance)/2, Y+11);
     mpg.text(Name, X-4-textWidth(Name)/2, Y-9);
@@ -266,6 +341,7 @@ void fscmdSetupFscmTComms() {
     println("no transmitter, stopping program!");
     while (true);
   }
+  delay(500);
 }
 void fscmdHomeSet() {
   if (fscmHomeSet==true) {

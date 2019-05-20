@@ -14,6 +14,7 @@ import de.fhpotsdam.unfolding.ui.*;
 import de.fhpotsdam.unfolding.utils.*;
 import de.fhpotsdam.utils.*;
 import de.fhpotsdam.unfolding.mapdisplay.MapDisplayFactory;
+import java.util.List;
 import processing.net.*;
 /////////////////////////////reusable functions for fscm************************************************************
 Table points;
@@ -37,6 +38,74 @@ void setupPoints() {
   points.addColumn("Longitude", Table.FLOAT);
   points.addColumn("Altitude", Table.FLOAT);
 }
+class fscmdMapStatus {
+  int x;
+  int y;
+  int w;
+  int h;
+  int sel=-1;
+  String str="";
+  fscmdMapStatus(int X, int Y, int W, int H) {
+    x=X;
+    y=Y;
+    w=W;
+    h=H;
+  }
+  void display(Table Points) {
+    strokeWeight(0);
+    fill(30);
+    rect(x, y, w, h);
+    if (pointClicked>0) {
+      fill(255);
+      textSize(10);
+      text("Latitude", 3, y+10);
+      text(nf(points.getFloat(pointClicked, "Latitude"), 0, 6), 3, y+20);
+      text("Longitude", 3, y+30);
+      text(nf(points.getFloat(pointClicked, "Longitude"), 0, 6), 3, y+40);
+      text("Altitude", 3, y+50);
+      points.setFloat(pointClicked, "Altitude", textBox(pointClicked, points.getFloat(pointClicked, "Altitude"), 3, y+50, w-6));
+    }
+  }
+  float textBox(int pc, float val, int x, int y, int w) {
+    if (mousePressed&&mouseX>=x&&mouseX<=x+w&&mouseY>=y&&mouseY<=y+10) {
+      sel=pc;
+      str="";
+      //if (str=="") {
+      //  str=str(val);
+      //}
+    }
+    if (keyPushed&&key==ENTER) {
+      sel=-1;
+    }
+    if (sel==pc) {
+      stroke(255);
+      if (((key==45||key ==46||(key>=48&&key<=57)) && (key != CODED)&&keyPushed&&textWidth(str)<w)) {
+        str+=key;
+      }
+      if (keyPushed&&key==BACKSPACE&&str.length()>0) {
+        str=str.substring(0, str.length()-1);
+      }
+    } else {
+      stroke(30);
+      if (str!=""&&float(str)==float(str)) {
+        val=float(str);
+      }
+      str="";
+    }
+    fill(15);
+    rect(x, y, w, 10);      
+    textSize(10);
+    textAlign(LEFT);
+    if (sel==pc) {
+      fill(125);
+      text(str, x, y+10);
+    } else {
+      fill(255);
+      text(val, x-4, y+10);
+    }
+    return val;
+  }
+}
 class fscmdMapDisplay {
   int x;
   int y;
@@ -51,15 +120,21 @@ class fscmdMapDisplay {
     maxDispFlyDistMeters=MaxDispFlyDistMeters;
     map = new UnfoldingMap(fscmD.this, x, y, s, s, new Microsoft.HybridProvider());
     map.setZoomRange(4, 18);
-    map.zoomAndPanTo(10, new Location(fscmHomeLon, fscmHomeLat));
+    map.zoomAndPanTo(10, new Location(fscmHomeLat, fscmHomeLon));
     MapUtils.createDefaultEventDispatcher(fscmD.this, map);
     mpg=createGraphics(s, s, P2D);
   }
   void display(float FscmFGpsLat, float FscmFGpsLon, float DHomeHeading, float DDOFHeading, float DGPSHeading, float FscmHomeLat, float FscmHomeLon) {
     if (fscmHomeSet) {
-      map.panTo(new Location(FscmHomeLat, FscmHomeLon));
+      List<Location> zoomloclist = new ArrayList<Location>();
+      map.rotateTo(0);
+      zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(FscmHomeLat, FscmHomeLon), 90, maxDispFlyDistMeters/1110.00)));
+      zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(FscmHomeLat, FscmHomeLon), 180, maxDispFlyDistMeters/1110.00)));
+      zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(FscmHomeLat, FscmHomeLon), 270, maxDispFlyDistMeters/1110.00)));
+      zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(FscmHomeLat, FscmHomeLon), 0, maxDispFlyDistMeters/1110.00)));
+      map.zoomAndPanToFit(zoomloclist);
+      map.rotateTo(-radians(DHomeHeading));
     }
-    map.rotateTo(-radians(DHomeHeading));
     map.draw();
     strokeWeight(1);
     stroke(255);
@@ -81,7 +156,7 @@ class fscmdMapDisplay {
     for (int i=1; i<points.getRowCount(); i++) {
       marker(i, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-x, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-y, color(255, 255, 50), nf(points.getInt(i, "ID")), nf(points.getFloat(i, "Altitude"), 0, 1), nf((540-DDOFHeading+degrees((float)GeoUtils.getAngleBetween(new Location(FscmFGpsLat, FscmFGpsLon), new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))))%360-180, 0, 2), str((int)(1000.0000*GeoUtils.getDistance(FscmFGpsLat, FscmFGpsLon, points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))));
     }
-    if (clickpoint==false&&mousePushed) {
+    if (clickpoint==false&&mousePushed&&mouseX>x&&mouseX<x+s&&mouseY>y&&mouseY<y+s) {
       pointClicked=-1;
     }
     clickpoint=false;
@@ -129,8 +204,8 @@ class fscmdMapDisplay {
     mpg.fill(C);
     mpg.textSize(9);
     mpg.textAlign(CENTER);
-    mpg.text(int(R), pos.x-x, pos.y-y-r-5);
-  } 
+    mpg.text(int(R), pos.x-x, pos.y-y-r+15);
+  }
   float getDistance(Location mainLocation, float mLength) {
     Location tempLocation = GeoUtils.getDestinationLocation(mainLocation, 90, mLength/1000.00);
     ScreenPosition pos1 = map.getScreenPosition(mainLocation);
@@ -143,34 +218,41 @@ class fscmdMapDisplay {
     mpg.fill(C, 120);
     mpg.line(X+10, Y, X-10, Y);
     mpg.line(X, Y+10, X, Y-10);
-    if (sq(mouseX-(x+X))+sq(mouseY-(y+Y))<=sq(10)) {
+    mpg.textSize(10);
+    mpg.textAlign(CENTER);
+    if (sq(mouseX-(x+X))+sq(mouseY-(y+Y))<=sq(10)&&!hoverpoint) {
       pointHovered=i;
       hoverpoint=true;      
       if (mousePressed&&mouseButton==LEFT) {
         clickpoint=true;
       }
       if (mousePushed&&mouseButton==LEFT&&pointClicked==i&&i>0) {
-        pointHovered=-1;
-        pointClicked=-1;
-        points.removeRow(i);
-        for (int j=i; j<points.getRowCount(); j++) {
+        mousePushed=false;
+        points.removeRow(pointClicked);
+        for (int j=pointClicked; j<points.getRowCount(); j++) {
           points.setInt(j, "ID", j);
         }
+        pointHovered=-1;
+        pointClicked=-1;
       }
-      if (mousePressed&&mouseButton==LEFT) {
+      if (mousePushed&&mouseButton==LEFT) {
         pointClicked=i;
       }
     }
     if (pointHovered==i) {
+      if (pointClicked!=i) {
+        mpg.fill(150, 170);
+        mpg.rect(X-4-max(mpg.textWidth(Name), mpg.textWidth(Heading)), Y-20, max(mpg.textWidth(Name), mpg.textWidth(Heading))+15+max(mpg.textWidth(Alt), mpg.textWidth(Distance)), 35);
+      }
       mpg.fill(255);
     }
     if (pointClicked==i) {
+      mpg.fill(150, 220);
+      mpg.rect(X-4-max(mpg.textWidth(Name), mpg.textWidth(Heading)), Y-20, max(mpg.textWidth(Name), mpg.textWidth(Heading))+15+max(mpg.textWidth(Alt), mpg.textWidth(Distance)), 35);
       mpg.fill(200);
     }
     mpg.ellipse(X, Y, 10, 10);
     mpg.fill(C);
-    mpg.textSize(10);
-    mpg.textAlign(CENTER);
     mpg.text(Alt, X+9+textWidth(Alt)/2, Y-9);
     mpg.text(Distance, X+9+textWidth(Distance)/2, Y+11);
     mpg.text(Name, X-4-textWidth(Name)/2, Y-9);
@@ -266,6 +348,7 @@ void fscmdSetupFscmTComms() {
     println("no transmitter, stopping program!");
     while (true);
   }
+  delay(500);
 }
 void fscmdHomeSet() {
   if (fscmHomeSet==true) {
@@ -445,7 +528,7 @@ class fscmdOrientationDisplay {
 
   //////////internal vars
   int stgiRes=2500; 
-  float landRat=4.0; 
+  float landRat=2; 
 
   //////////updated vars
   float oriqw=1; 
@@ -455,16 +538,17 @@ class fscmdOrientationDisplay {
   float dgpsheading=0; 
   float cgaltitude=0; 
   float dhomeheading=0; 
-  float dheadingfromhome=0; 
+  float dheadingfromhome=0;
   float ddistmeters=0; 
   ///////////////////
-  PGraphics stg; 
-  PImage stgi; 
+  PGraphics stg; //sphere texture
+  PImage stgi; //spehre texture
   PShape sphere; 
   PGraphics sTw; 
   PGraphics sTx; 
-  PGraphics sTxL; 
-  PGraphics sTxLM; 
+  PGraphics sTxL; //ground
+  PGraphics sTxLM; //circle mask on ground
+  UnfoldingMap map;
   fscmdOrientationDisplay(int POSX, int POSY, int SIZE, float MAXDISTMETERS) {
     posx=POSX; 
     posy=POSY; 
@@ -505,38 +589,27 @@ class fscmdOrientationDisplay {
     stgi=stg.get(); 
     sTw=createGraphics(size, size, P3D); 
     sTx=createGraphics(size, size, P3D); 
-    sTxL=createGraphics(int(landRat*maxDistMeters), int(landRat*maxDistMeters)); 
-    sTxLM=createGraphics(int(landRat*maxDistMeters), int(landRat*maxDistMeters)); 
+    sTxL=createGraphics(int(landRat*maxDistMeters*2), int(landRat*maxDistMeters*2)); 
+    sTxLM=createGraphics(int(landRat*maxDistMeters*2), int(landRat*maxDistMeters*2)); 
     sTxLM.beginDraw(); 
     sTxLM.background(0); 
     sTxLM.noStroke(); 
     sTxLM.fill(255); 
-    sTxLM.ellipse(landRat*maxDistMeters/2, landRat*maxDistMeters/2, landRat*maxDistMeters, landRat*maxDistMeters); 
-    sTxLM.endDraw(); 
-    sTxL.beginDraw(); 
+    sTxLM.ellipse(landRat*maxDistMeters, landRat*maxDistMeters, landRat*maxDistMeters*2, landRat*maxDistMeters*2); 
+    sTxLM.endDraw();
+    map = new UnfoldingMap(fscmD.this, width+10, 0, landRat*maxDistMeters*2, landRat*maxDistMeters*2, new Microsoft.HybridProvider());
+    sTxL.beginDraw();
     sTxL.background(0, 150, 0); 
-    sTxL.stroke(255); 
-    for (float x=-landRat*maxDistMeters/2; x<=landRat*maxDistMeters/2; x+=landRat/2.0*10) {
-      sTxL.line(x+landRat*maxDistMeters/2, 0, x+landRat*maxDistMeters/2, landRat*maxDistMeters); 
-      sTxL.line(0, x+landRat*maxDistMeters/2, landRat*maxDistMeters, x+landRat*maxDistMeters/2);
-    } 
-    sTxL.strokeWeight(3); 
-    for (float x=-landRat*maxDistMeters/2; x<=landRat*maxDistMeters/2; x+=landRat/2.0*100) {
-      sTxL.line(x, 0, x, landRat*maxDistMeters);
-    }
-    sTxL.strokeWeight(2);
-    sTxL.stroke(0, 255, 255);
+    sTxL.strokeWeight(4);
     sTxL.noFill();
-    for (float x=0; x<=landRat*maxDistMeters; x+=landRat/2.0*250) {
-      sTxL.ellipse(landRat*maxDistMeters/2, landRat*maxDistMeters/2, x, x);
-    } 
-    sTxL.strokeWeight(3); 
-    sTxL.stroke(255, 100, 255); 
-    for (int x=0; x<180; x+=15) {
-      sTxL.line(-landRat*maxDistMeters*cos(radians(x))/2+landRat*maxDistMeters/2, -landRat*maxDistMeters*sin(radians(x))/2+landRat*maxDistMeters/2, landRat*maxDistMeters*cos(radians(x))/2+landRat*maxDistMeters/2, landRat*maxDistMeters*sin(radians(x))/2+landRat*maxDistMeters/2);
-    }
+    sTxL.stroke(0, 255, 0);
+    sTxL.ellipse(landRat*maxDistMeters, landRat*maxDistMeters, landRat*maxDistMeters/4, landRat*maxDistMeters/4);
+    sTxL.stroke(255, 255, 0);
+    sTxL.ellipse(landRat*maxDistMeters, landRat*maxDistMeters, landRat*maxDistMeters/2, landRat*maxDistMeters/2);
+    sTxL.stroke(255, 0, 0);
+    sTxL.ellipse(landRat*maxDistMeters, landRat*maxDistMeters, landRat*maxDistMeters, landRat*maxDistMeters);
     sTxL.endDraw(); 
-    sTxL.mask(sTxLM.get()); 
+    sTxL.mask(sTxLM.get());
     sTw.sphereDetail(55); 
     sphere=sTw.createShape(SPHERE, size*2); 
     sphere.setTexture(stgi);
@@ -550,9 +623,31 @@ class fscmdOrientationDisplay {
     dgpsheading=GpsHeading; 
     dhomeheading=DHomeHeading; 
     dheadingfromhome=DHeadingFromHome; 
-    ddistmeters=DDistMeters; 
-
-
+    ddistmeters=DDistMeters;
+    if (fscmHomeSet) {
+      map.rotateTo(0);
+      List<Location> zoomloclist = new ArrayList<Location>();
+      zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(fscmHomeLat, fscmHomeLon), 90, maxDispFlyDistMeters/1110.00)));
+      zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(fscmHomeLat, fscmHomeLon), 180, maxDispFlyDistMeters/1110.00)));
+      zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(fscmHomeLat, fscmHomeLon), 270, maxDispFlyDistMeters/1110.00)));
+      zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(fscmHomeLat, fscmHomeLon), 0, maxDispFlyDistMeters/1110.00)));
+      map.zoomAndPanToFit(zoomloclist);
+      while (!map.allTilesLoaded()) {
+        map.draw();
+      }
+      sTxL.beginDraw();
+      sTxL.image(map.mapDisplay.getOuterPG().get(), 0, 0, landRat*maxDistMeters*2, landRat*maxDistMeters*2);
+      sTxL.strokeWeight(4);
+      sTxL.noFill();
+      sTxL.stroke(0, 255, 0);
+      sTxL.ellipse(landRat*maxDistMeters, landRat*maxDistMeters, landRat*maxDistMeters/4, landRat*maxDistMeters/4);
+      sTxL.stroke(255, 255, 0);
+      sTxL.ellipse(landRat*maxDistMeters, landRat*maxDistMeters, landRat*maxDistMeters/2, landRat*maxDistMeters/2);
+      sTxL.stroke(255, 0, 0);
+      sTxL.ellipse(landRat*maxDistMeters, landRat*maxDistMeters, landRat*maxDistMeters, landRat*maxDistMeters);
+      sTxL.endDraw(); 
+      sTxL.mask(sTxLM.get());
+    }
     sTw.beginDraw(); 
     sTw.perspective(radians(90), 1, 1, 100000); 
     sTw.background(0); 
@@ -580,9 +675,11 @@ class fscmdOrientationDisplay {
     sTx.rotateY(radians(180)); 
     sTx.rotate(rEs[0], rEs[2], rEs[3], rEs[1]);
     sTx.pushMatrix(); 
-    sTx.translate(-cos(-radians(dheadingfromhome))*ddistmeters*landRat/2, cgaltitude*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat/2); 
+    sTx.translate(-cos(-radians(dheadingfromhome))*ddistmeters*landRat, cgaltitude*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat);
     sTx.rotateX(radians(450)); 
-    sTx.image(sTxL, -landRat*maxDistMeters/2, -landRat*maxDistMeters/2); 
+    sTx.rotateZ(PI/2);
+    sTx.image(sTxL, -landRat*maxDistMeters, -landRat*maxDistMeters); 
+    sTx.rotateZ(-PI/2);
     sTx.fill(255, 182, 0); 
     sTx.rotate(radians(dhomeheading)); 
     sTx.strokeWeight(1); 
@@ -593,7 +690,7 @@ class fscmdOrientationDisplay {
     sTx.fill(0, 5, 255); 
     sTx.sphere(landRat*maxDistMeters/750); 
     sTx.popMatrix(); 
-    sTx.translate(0, cgaltitude*landRat, 0); 
+    sTx.translate(0, cgaltitude*landRat, 0);
     sTx.rotateX(radians(90)); 
     sTx.strokeWeight(5); 
     sTx.stroke(50, 50, 255); 
@@ -610,12 +707,12 @@ class fscmdOrientationDisplay {
     sTx.ellipse(0, 0, maxDistMeters*landRat/300, maxDistMeters*landRat/300);
     sTx.strokeWeight(3);
     sTx.stroke(200, 70, 70);
-    sTx.line(-cos(-radians(dheadingfromhome))*ddistmeters*landRat/2, sin(-radians(dheadingfromhome))*ddistmeters*landRat/2, -cos(-radians(dheadingfromhome))*ddistmeters*landRat/2+ cos(radians(dhomeheading))*maxDistMeters*landRat/2, sin(-radians(dheadingfromhome))*ddistmeters*landRat/2+sin(radians(dhomeheading))*maxDistMeters*landRat/2);
+    sTx.line(-cos(-radians(dheadingfromhome))*ddistmeters*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat, -cos(-radians(dheadingfromhome))*ddistmeters*landRat+ cos(radians(dhomeheading))*maxDistMeters*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat+sin(radians(dhomeheading))*maxDistMeters*landRat);
     sTx.popMatrix(); 
     sTx.endDraw(); 
     noStroke(); 
     image(sTx, posx, posy, size, size); 
-    tint(255, 100); 
+    tint(255, 50); 
     image(sTw, posx, posy, size, size); 
     noTint(); 
     strokeWeight(1); 

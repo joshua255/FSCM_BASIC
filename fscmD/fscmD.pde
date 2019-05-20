@@ -12,6 +12,7 @@ fscmdCoBarGraphDisplay FSCMDRSSI;
 fscmdCoBarGraphDisplay TRANSRSSI;
 fscmdCoBarGraphDisplay TBATCGD;
 fscmdButton BSH;
+fscmdMapStatus MS;
 //////////////////constants to pass in/////////////////////////////////////////////////////
 float maxDispFlyDistMeters=1000;
 float WARNINGALT=0;
@@ -22,7 +23,7 @@ int fscmFOriSystemCal=0;
 int fscmFOriGyroCal=0;
 int fscmFOriAccelCal=0;
 int fscmFOriMagCal=0;
-float fscmFGpsLon=-110.0000;
+float fscmFGpsLon=-123.0000;
 float fscmFGpsLat=43.0000;
 float fscmFGpsSatStat=0;
 float fscmFGpsSpeed=0.00;
@@ -57,7 +58,7 @@ float fscmHomeHeading = 0.000;
 float fscmHomeLat = 0.00000;
 float fscmHomeLon = 0.00000;
 /////////////////////////////fscmDVars
-boolean setHome=false;
+boolean setHome=true;
 int numWarnings=1;
 int warningID=1;
 long lastwarnedbattery=0;
@@ -76,9 +77,10 @@ void setup() {
   s=new Client(this, "localhost", 12340);
   setupPoints();
   MD=new fscmdMapDisplay(173, 225, 475, maxDispFlyDistMeters);
+  MS=new fscmdMapStatus(0, 75, 171, 175);
   // HDD=new fscmdHeadingDistanceDisplay(200, 150, 120, maxDispFlyDistMeters);
   OTD=new fscmdOrientationDisplay(650, 0, 700, maxDispFlyDistMeters);
-  MBGBOO=new fscmdMiBarGraphDisplay(0, 0, 50, 3, "overall BNO055 orientation calibration status");
+  MBGBOO=new fscmdMiBarGraphDisplay(0, 0, 50, 3, "orientation status");
   MBGBOA=new fscmdMiBarGraphDisplay(50, 0, 35, 3, "BNO055 accel status");
   MBGBOG=new fscmdMiBarGraphDisplay(85, 0, 35, 3, "BNO055 gyro status");
   MBGBOM=new fscmdMiBarGraphDisplay(120, 0, 35, 3, "BNO055 mag status");
@@ -93,10 +95,9 @@ void setup() {
 }
 void draw() {
   fscmFEul=fscmdQuaternionToEuler(fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFOriQuatW);
-  fscmdHomeSet();
   setHome=BSH.display(setHome);
+  fscmdHomeSet();
   runWarnings();
-  MD.display(fscmFGpsLat, fscmFGpsLon, fscmHomeHeading, fscmFEul[0], fscmFGpsHeading, fscmHomeLat, fscmHomeLon);
   //HDD.display(fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters, fscmFEul[0], fscmFGpsHeading); //float DHomeHeading, float DHeadingFromHome, float DDistMeters, float DDOFHeading, float DGPSHeading
   OTD.display(fscmFOriQuatW, fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFGpsHeading, fscmFGAlt, fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters); //float Oriqw, float Oriqx, float Oriqy, float Oriqz, float GpsHeading, float CGAltitude, float DHomeHeading, float DHeadingFromHome, float DDistMeters
   String[] dispMsg={
@@ -160,6 +161,8 @@ void draw() {
   MBGBOA.display(fscmFOriAccelCal);
   MBGBOG.display(fscmFOriGyroCal);
   MBGBOM.display(fscmFOriMagCal);
+  MS.display(points);
+  MD.display(fscmFGpsLat, fscmFGpsLon, fscmHomeHeading, fscmFEul[0], fscmFGpsHeading, fscmHomeLat, fscmHomeLon);
   //  TBATCGD.display(fscmTBatVVal);
   PWG.display(fscmFBatVolt);
   PWRCBG.display(fscmFBatVolt);

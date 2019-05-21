@@ -18,7 +18,7 @@ float maxDispFlyDistMeters=1000;
 float WARNINGALT=0;
 //////////////////recieved data////////////////////////////////////////////////////////////
 ////////////////////////////////recieve
-boolean fscmHomeSet=true;
+boolean fscmHomeSet=false;
 int fscmFOriSystemCal=0;
 int fscmFOriGyroCal=0;
 int fscmFOriAccelCal=0;
@@ -58,7 +58,7 @@ float fscmHomeHeading = 0.000;
 float fscmHomeLat = 0.00000;
 float fscmHomeLon = 0.00000;
 /////////////////////////////fscmDVars
-boolean setHome=true;
+boolean setHome=false;
 int numWarnings=1;
 int warningID=1;
 long lastwarnedbattery=0;

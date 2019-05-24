@@ -135,6 +135,9 @@ class fscmdMapDisplay {
       map.zoomAndPanToFit(zoomloclist);
       map.rotateTo(-radians(DHomeHeading));
     }
+    while (!map.allTilesLoaded()) {
+      map.draw();
+    }
     map.draw();
     strokeWeight(1);
     stroke(255);
@@ -184,8 +187,12 @@ class fscmdMapDisplay {
     mpg.ellipse(0, 0, 6, 6);
     mpg.popMatrix();
     mpg.rotate(PI+radians((DGPSHeading-DHomeHeading)));
-    mpg.strokeWeight(2); 
     mpg.stroke(0, 0, 255, 180); 
+    mpg.strokeWeight(6);
+    ScreenPosition pos=map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon));
+    float r=getDistance(new Location(FscmFGpsLat, FscmFGpsLon), fscmFGpsSpeed*30);
+    mpg.line(0, 0, 0, r); //gps plane direction
+    mpg.strokeWeight(2);
     mpg.line(0, 0, 0, s); //gps plane direction
     mpg.popMatrix();
     mpg.strokeWeight(1);
@@ -640,6 +647,7 @@ class fscmdOrientationDisplay {
       while (!map.allTilesLoaded()) {
         map.draw();
       }
+      map.draw();
       sTxL.beginDraw();
       sTxL.image(map.mapDisplay.getOuterPG().get(), 0, 0, landRat*maxDistMeters*2, landRat*maxDistMeters*2);
       sTxL.stroke(150);
@@ -695,17 +703,19 @@ class fscmdOrientationDisplay {
     sTx.rotate(radians(dhomeheading)); 
     sTx.strokeWeight(1); 
     sTx.stroke(0); 
-    sTx.box(landRat*maxDistMeters/300); 
-    sTx.translate(landRat*maxDistMeters/600, 0, landRat*maxDistMeters/1200); 
+    sTx.box(landRat*maxDistMeters/500); 
+    sTx.translate(landRat*maxDistMeters/600, 0, landRat*maxDistMeters/1200);
     sTx.noStroke(); 
     sTx.fill(0, 5, 255); 
     sTx.sphere(landRat*maxDistMeters/750); 
     sTx.popMatrix(); 
     sTx.translate(0, cgaltitude*landRat, 0);
     sTx.rotateX(radians(90)); 
-    sTx.strokeWeight(5); 
+    sTx.strokeWeight(8); 
     sTx.stroke(50, 50, 255); 
-    sTx.line(0, 0, cos(-radians(dgpsheading))*maxDistMeters*landRat*12, -sin(-radians(dgpsheading))*maxDistMeters*landRat*12); 
+    sTx.line(0, 0, cos(-radians(dgpsheading))*fscmFGpsSpeed*landRat*30, -sin(-radians(dgpsheading))*landRat*fscmFGpsSpeed*30); 
+    sTx.strokeWeight(2);
+    sTx.line(0, 0, cos(-radians(dgpsheading))*maxDistMeters*landRat*30, -sin(-radians(dgpsheading))*maxDistMeters*landRat*30); 
     sTx.stroke(0, 50, 0); 
     sTx.line(0, 0, -cos(radians(-dheadingfromhome))*maxDistMeters*landRat*12, sin(radians(-dheadingfromhome))*maxDistMeters*landRat*12); 
     sTx.pushMatrix();

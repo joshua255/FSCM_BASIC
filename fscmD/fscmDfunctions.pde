@@ -16,7 +16,12 @@ import de.fhpotsdam.utils.*;
 import de.fhpotsdam.unfolding.mapdisplay.MapDisplayFactory;
 import java.util.List;
 import processing.net.*;
+import java.util.Date;
 /////////////////////////////reusable functions for fscm************************************************************
+Table telog;
+boolean telogging=false;
+boolean fscmDJustGotTS=false;
+boolean wastelogging=false;
 Table points;
 int pointHovered=-1;
 int pointClicked=-1;
@@ -37,6 +42,113 @@ void setupPoints() {
   points.addColumn("Latitude", Table.FLOAT);
   points.addColumn("Longitude", Table.FLOAT);
   points.addColumn("Altitude", Table.FLOAT);
+}
+void runTelog() {
+  if (telogging&&!wastelogging) {
+    setupTelog();
+  }
+  if (!telogging&&wastelogging) {
+    saveTelog();
+  }
+  if (telogging) {
+    recTelog();
+  }
+}
+void setupTelog() {
+  telog = new Table();
+  telog.addColumn("fscmD millis", Table.LONG);
+  telog.addColumn("fscmHomeSet", Table.INT);
+  telog.addColumn("setHome", Table.INT);
+  telog.addColumn("fscmHomeLat", Table.FLOAT);
+  telog.addColumn("fscmHomeLon", Table.FLOAT);
+  telog.addColumn("fscmHomeHeading", Table.FLOAT);
+  telog.addColumn("heading fm home", Table.FLOAT);
+  telog.addColumn("fscmFSigStrengthOfTran", Table.INT);
+  telog.addColumn("fscmTSigStrengthFromF", Table.INT);
+  telog.addColumn("fscmFOriSystemCal", Table.INT);
+  telog.addColumn("fscmFOriGyroCal", Table.INT);
+  telog.addColumn("fscmFOriAccelCal", Table.INT);
+  telog.addColumn("fscmFOriMagCal", Table.INT);
+  telog.addColumn("fscmFGpsLat", Table.FLOAT);
+  telog.addColumn("fscmFGpsLon", Table.FLOAT);
+  telog.addColumn("fscmFGpsSatStat", Table.FLOAT);
+  telog.addColumn("fscmFGpsSpeed", Table.FLOAT);
+  telog.addColumn("fscmFGpsHeading", Table.FLOAT);
+  telog.addColumn("fscmFDistMeters", Table.INT);
+  telog.addColumn("fscmFHeadFmHome", Table.FLOAT);
+  telog.addColumn("fscmFOriQuatX", Table.FLOAT);
+  telog.addColumn("fscmFOriQuatY", Table.FLOAT);
+  telog.addColumn("fscmFOriQuatZ", Table.FLOAT);
+  telog.addColumn("fscmFOriQuatW", Table.FLOAT);
+  telog.addColumn("fscmFGAlt", Table.FLOAT);
+  telog.addColumn("fscmFBatVolt", Table.FLOAT);
+  telog.addColumn("fscmFSigStrengthOfTran", Table.INT);
+  telog.addColumn("fscmTSigStrengthFromF", Table.INT);
+  telog.addColumn("fscmTBatVVal", Table.FLOAT);
+  telog.addColumn("fscmTRJXBVal", Table.INT);
+  telog.addColumn("fscmTRJYBVal", Table.INT);
+  telog.addColumn("fscmTLJXBVal", Table.INT);
+  telog.addColumn("fscmTLJYBVal", Table.INT);
+  telog.addColumn("fscmTLKBVal", Table.INT);
+  telog.addColumn("fscmTRKBVal", Table.INT);
+  telog.addColumn("fscmTLTVal", Table.INT);
+  telog.addColumn("fscmTRTVal", Table.INT);
+  telog.addColumn("fscmTLBVal", Table.INT);
+  telog.addColumn("fscmTRBVal", Table.INT);
+  telog.addColumn("fscmTETVal", Table.INT);
+  telog.addColumn("fscmFConnTime", Table.INT);
+  telog.addColumn("fscmCPitch", Table.FLOAT);
+  telog.addColumn("fscmCRoll", Table.FLOAT);
+}
+void recTelog() {
+  TableRow telrow=telog.addRow();
+  telrow.setLong("fscmD millis", millis());
+  telrow.setInt("fscmHomeSet", int(fscmHomeSet));
+  telrow.setInt("setHome", int(setHome));
+  telrow.setFloat("fscmHomeLat", fscmHomeLat);
+  telrow.setFloat("fscmHomeLon", fscmHomeLon);
+  telrow.setFloat("fscmHomeHeading", fscmHomeHeading);
+  telrow.setFloat("fscmFHeadFmHome", fscmFHeadFmHome);
+  telrow.setInt("fscmFSigStrengthOfTran", fscmFSigStrengthOfTran);
+  telrow.setInt("fscmTSigStrengthFromF", fscmTSigStrengthFromF);
+  telrow.setInt("fscmFOriSystemCal", fscmFOriSystemCal);
+  telrow.setInt("fscmFOriGyroCal", fscmFOriGyroCal);
+  telrow.setInt("fscmFOriAccelCal", fscmFOriAccelCal);
+  telrow.setInt("fscmFOriMagCal", fscmFOriMagCal);
+  telrow.setFloat("fscmFGpsLat", fscmFGpsLat);
+  telrow.setFloat("fscmFGpsLon", fscmFGpsLon);
+  telrow.setFloat("fscmFGpsSatStat", fscmFGpsSatStat);
+  telrow.setFloat("fscmFGpsSpeed", fscmFGpsSpeed);
+  telrow.setFloat("fscmFGpsHeading", fscmFGpsHeading);
+  telrow.setInt("fscmFDistMeters", fscmFDistMeters);
+  telrow.setFloat("fscmFHeadFmHome", fscmFHeadFmHome);
+  telrow.setFloat("fscmFOriQuatX", fscmFOriQuatX);
+  telrow.setFloat("fscmFOriQuatY", fscmFOriQuatY);
+  telrow.setFloat("fscmFOriQuatZ", fscmFOriQuatZ);
+  telrow.setFloat("fscmFOriQuatW", fscmFOriQuatW);
+  telrow.setFloat("fscmFGAlt", fscmFGAlt);
+  telrow.setFloat("fscmFBatVolt", fscmFBatVolt);
+  telrow.setInt("fscmFSigStrengthOfTran", fscmFSigStrengthOfTran);
+  telrow.setInt("fscmTSigStrengthFromF", fscmTSigStrengthFromF);
+  telrow.setFloat("fscmTBatVVal", fscmTBatVVal);
+  telrow.setInt("fscmTRJXBVal", fscmTRJXBVal);
+  telrow.setInt("fscmTRJYBVal", fscmTRJYBVal);
+  telrow.setInt("fscmTLJXBVal", fscmTLJXBVal);
+  telrow.setInt("fscmTLJYBVal", fscmTLJYBVal);
+  telrow.setInt("fscmTLKBVal", fscmTLKBVal);
+  telrow.setInt("fscmTRKBVal", fscmTRKBVal);
+  telrow.setInt("fscmTLTVal", int(fscmTLTVal));
+  telrow.setInt("fscmTRTVal", int(fscmTRTVal));
+  telrow.setInt("fscmTLBVal", int(fscmTLBVal));
+  telrow.setInt("fscmTRBVal", int(fscmTRBVal));
+  telrow.setInt("fscmTETVal", int(fscmTETVal));
+  telrow.setInt("fscmFConnTime", fscmFConnTime);
+  telrow.setFloat("fscmCPitch", fscmCPitch);
+  telrow.setFloat("fscmCRoll", fscmCRoll);
+}
+void saveTelog() {
+  saveTable(telog, "telog/DataFromTrial"+(new Date()).getTime()+".csv");
+  telog.clearRows();
 }
 class fscmdMapStatus {
   int x;
@@ -135,6 +247,9 @@ class fscmdMapDisplay {
       map.zoomAndPanToFit(zoomloclist);
       map.rotateTo(-radians(DHomeHeading));
     }
+    while (!map.allTilesLoaded()) {
+      map.draw();
+    }
     map.draw();
     strokeWeight(1);
     stroke(255);
@@ -184,8 +299,12 @@ class fscmdMapDisplay {
     mpg.ellipse(0, 0, 6, 6);
     mpg.popMatrix();
     mpg.rotate(PI+radians((DGPSHeading-DHomeHeading)));
-    mpg.strokeWeight(2); 
     mpg.stroke(0, 0, 255, 180); 
+    mpg.strokeWeight(6);
+    ScreenPosition pos=map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon));
+    float r=getDistance(new Location(FscmFGpsLat, FscmFGpsLon), fscmFGpsSpeed*30);
+    mpg.line(0, 0, 0, r); //gps plane direction
+    mpg.strokeWeight(2);
     mpg.line(0, 0, 0, s); //gps plane direction
     mpg.popMatrix();
     mpg.strokeWeight(1);
@@ -323,6 +442,7 @@ void serialEvent(Serial fscmTS) {
     fscmTS.write("<");
     fscmdDataToSendToFscmT();
     fscmTS.write(">");
+    fscmDJustGotTS=true;
   }
 }
 void fscmdSendDataFscmTBl(boolean d) {
@@ -600,7 +720,13 @@ class fscmdOrientationDisplay {
     map = new UnfoldingMap(fscmD.this, width+10, 0, landRat*maxDistMeters*2, landRat*maxDistMeters*2, new Microsoft.HybridProvider());
     sTxL.beginDraw();
     sTxL.background(0, 150, 0); 
-    sTxL.strokeWeight(4);
+    sTxL.stroke(150);
+    sTxL.strokeWeight(1);
+    for (int i=0; i<int(2*landRat*maxDistMeters); i+=landRat*10) {
+      sTxL.line(i, 0, i, landRat*maxDistMeters*2);
+      sTxL.line(0, i, landRat*maxDistMeters*2, i);
+    }
+    sTxL.strokeWeight(5);
     sTxL.noFill();
     sTxL.stroke(0, 255, 0);
     sTxL.ellipse(landRat*maxDistMeters, landRat*maxDistMeters, landRat*maxDistMeters/4, landRat*maxDistMeters/4);
@@ -625,7 +751,6 @@ class fscmdOrientationDisplay {
     dheadingfromhome=DHeadingFromHome; 
     ddistmeters=DDistMeters;
     if (fscmHomeSet) {
-      map.rotateTo(0);
       List<Location> zoomloclist = new ArrayList<Location>();
       zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(fscmHomeLat, fscmHomeLon), 90, maxDispFlyDistMeters/1110.00)));
       zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(fscmHomeLat, fscmHomeLon), 180, maxDispFlyDistMeters/1110.00)));
@@ -635,9 +760,16 @@ class fscmdOrientationDisplay {
       while (!map.allTilesLoaded()) {
         map.draw();
       }
+      map.draw();
       sTxL.beginDraw();
       sTxL.image(map.mapDisplay.getOuterPG().get(), 0, 0, landRat*maxDistMeters*2, landRat*maxDistMeters*2);
-      sTxL.strokeWeight(4);
+      sTxL.stroke(150);
+      sTxL.strokeWeight(1);
+      for (int i=0; i<int(2*landRat*maxDistMeters); i+=landRat*10) {
+        sTxL.line(i, 0, i, landRat*maxDistMeters*2);
+        sTxL.line(0, i, landRat*maxDistMeters*2, i);
+      }
+      sTxL.strokeWeight(5);
       sTxL.noFill();
       sTxL.stroke(0, 255, 0);
       sTxL.ellipse(landRat*maxDistMeters, landRat*maxDistMeters, landRat*maxDistMeters/4, landRat*maxDistMeters/4);
@@ -684,17 +816,19 @@ class fscmdOrientationDisplay {
     sTx.rotate(radians(dhomeheading)); 
     sTx.strokeWeight(1); 
     sTx.stroke(0); 
-    sTx.box(landRat*maxDistMeters/300); 
-    sTx.translate(landRat*maxDistMeters/600, 0, landRat*maxDistMeters/1200); 
+    sTx.box(landRat*maxDistMeters/500); 
+    sTx.translate(landRat*maxDistMeters/600, 0, landRat*maxDistMeters/1200);
     sTx.noStroke(); 
     sTx.fill(0, 5, 255); 
     sTx.sphere(landRat*maxDistMeters/750); 
     sTx.popMatrix(); 
     sTx.translate(0, cgaltitude*landRat, 0);
     sTx.rotateX(radians(90)); 
-    sTx.strokeWeight(5); 
+    sTx.strokeWeight(8); 
     sTx.stroke(50, 50, 255); 
-    sTx.line(0, 0, cos(-radians(dgpsheading))*maxDistMeters*landRat*12, -sin(-radians(dgpsheading))*maxDistMeters*landRat*12); 
+    sTx.line(0, 0, cos(-radians(dgpsheading))*fscmFGpsSpeed*landRat*30, -sin(-radians(dgpsheading))*landRat*fscmFGpsSpeed*30); 
+    sTx.strokeWeight(2);
+    sTx.line(0, 0, cos(-radians(dgpsheading))*maxDistMeters*landRat*30, -sin(-radians(dgpsheading))*maxDistMeters*landRat*30); 
     sTx.stroke(0, 50, 0); 
     sTx.line(0, 0, -cos(radians(-dheadingfromhome))*maxDistMeters*landRat*12, sin(radians(-dheadingfromhome))*maxDistMeters*landRat*12); 
     sTx.pushMatrix();
@@ -704,7 +838,7 @@ class fscmdOrientationDisplay {
     sTx.popMatrix();
     sTx.noStroke(); 
     sTx.fill(255, 0, 255);
-    sTx.ellipse(0, 0, maxDistMeters*landRat/300, maxDistMeters*landRat/300);
+    sTx.ellipse(0, 0, maxDistMeters*landRat/1000, maxDistMeters*landRat/1000);
     sTx.strokeWeight(3);
     sTx.stroke(200, 70, 70);
     sTx.line(-cos(-radians(dheadingfromhome))*ddistmeters*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat, -cos(-radians(dheadingfromhome))*ddistmeters*landRat+ cos(radians(dhomeheading))*maxDistMeters*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat+sin(radians(dhomeheading))*maxDistMeters*landRat);
@@ -735,73 +869,73 @@ class fscmdOrientationDisplay {
     return res;
   }
 }
-class fscmdHeadingDistanceDisplay {
-  /////////////setup vars
-  int posCX; 
-  int posCy; 
-  int size; 
-  float maxDistMeters; 
+//class fscmdHeadingDistanceDisplay {
+//  /////////////setup vars
+//  int posCX; 
+//  int posCy; 
+//  int size; 
+//  float maxDistMeters; 
 
-  /////////////internal vars
-  float distDispPixels; 
+//  /////////////internal vars
+//  float distDispPixels; 
 
-  /////////////display vars
-  float dHomeHeading; 
-  float dHeadingFromHome; 
-  float dDOFHeading; 
-  float dGPSHeading; 
-  float dDistMeters; 
+//  /////////////display vars
+//  float dHomeHeading; 
+//  float dHeadingFromHome; 
+//  float dDOFHeading; 
+//  float dGPSHeading; 
+//  float dDistMeters; 
 
-  fscmdHeadingDistanceDisplay(int PosCX, int PosCy, int Size, float MaxDispMeters) {
-    posCX=PosCX; 
-    posCy=PosCy; 
-    size=Size; 
-    maxDistMeters=MaxDispMeters;
-  }
-  void display(float DHomeHeading, float DHeadingFromHome, float DDistMeters, float DDOFHeading, float DGPSHeading) {
-    dHomeHeading=DHomeHeading; 
-    dHeadingFromHome=DHeadingFromHome; 
-    dDistMeters=DDistMeters; 
-    dDOFHeading=DDOFHeading; 
-    dGPSHeading=DGPSHeading; 
-    fill(10, 50, 10); 
-    stroke(255); 
-    strokeWeight(1); 
-    ellipse(posCX, posCy, size, size); //background
+//  fscmdHeadingDistanceDisplay(int PosCX, int PosCy, int Size, float MaxDispMeters) {
+//    posCX=PosCX; 
+//    posCy=PosCy; 
+//    size=Size; 
+//    maxDistMeters=MaxDispMeters;
+//  }
+//  void display(float DHomeHeading, float DHeadingFromHome, float DDistMeters, float DDOFHeading, float DGPSHeading) {
+//    dHomeHeading=DHomeHeading; 
+//    dHeadingFromHome=DHeadingFromHome; 
+//    dDistMeters=DDistMeters; 
+//    dDOFHeading=DDOFHeading; 
+//    dGPSHeading=DGPSHeading; 
+//    fill(10, 50, 10); 
+//    stroke(255); 
+//    strokeWeight(1); 
+//    ellipse(posCX, posCy, size, size); //background
 
-    fill(100); 
-    triangle(posCX-size/25, posCy, posCX+size/25, posCy, posCX, posCy-size/10); //home station heading
-    noStroke(); 
-    fill(255, 0, 0); 
-    ellipse(posCX, posCy, 5, 5); 
-    stroke(255); 
-    strokeWeight(1); 
+//    fill(100); 
+//    triangle(posCX-size/25, posCy, posCX+size/25, posCy, posCX, posCy-size/10); //home station heading
+//    noStroke(); 
+//    fill(255, 0, 0); 
+//    ellipse(posCX, posCy, 5, 5); 
+//    stroke(255); 
+//    strokeWeight(1); 
 
-    pushMatrix(); 
-    translate(posCX, posCy); 
-    rotate(PI-radians(dHomeHeading)); 
-    fill(155, 0, 0); 
-    triangle(-size/30, size*.4, size/30, size*.4, 0, size*.48); //north
-    popMatrix(); 
+//    pushMatrix(); 
+//    translate(posCX, posCy); 
+//    rotate(PI-radians(dHomeHeading)); 
+//    fill(155, 0, 0); 
+//    triangle(-size/30, size*.4, size/30, size*.4, 0, size*.48); //north
+//    popMatrix(); 
 
-    pushMatrix(); 
-    translate(posCX, posCy); 
-    rotate(PI-radians(dHomeHeading-dHeadingFromHome)); 
-    distDispPixels=int(constrain(map(dDistMeters, 0, maxDistMeters, 0, size/2-size/10), 0, (size/2)-size/10)); //flyer
-    translate(0, distDispPixels); 
-    rotate(radians(dDOFHeading-dHeadingFromHome)); 
-    fill(255, 205, 255); 
-    triangle(-size/35, 0, size/35, 0, 0, size/12); 
-    fill(255, 0, 0); 
-    ellipse(0, 0, 6, 6); 
-    rotate(-radians(dDOFHeading-dHeadingFromHome)); 
-    rotate(radians((dGPSHeading-dHeadingFromHome))); 
-    strokeWeight(2); 
-    stroke(0, 0, 255); 
-    line(0, 0, 0, size/11); //gps plane direction
-    popMatrix();
-  }
-}
+//    pushMatrix(); 
+//    translate(posCX, posCy); 
+//    rotate(PI-radians(dHomeHeading-dHeadingFromHome)); 
+//    distDispPixels=int(constrain(map(dDistMeters, 0, maxDistMeters, 0, size/2-size/10), 0, (size/2)-size/10)); //flyer
+//    translate(0, distDispPixels); 
+//    rotate(radians(dDOFHeading-dHeadingFromHome)); 
+//    fill(255, 205, 255); 
+//    triangle(-size/35, 0, size/35, 0, 0, size/12); 
+//    fill(255, 0, 0); 
+//    ellipse(0, 0, 6, 6); 
+//    rotate(-radians(dDOFHeading-dHeadingFromHome)); 
+//    rotate(radians((dGPSHeading-dHeadingFromHome))); 
+//    strokeWeight(2); 
+//    stroke(0, 0, 255); 
+//    line(0, 0, 0, size/11); //gps plane direction
+//    popMatrix();
+//  }
+//}
 class Slider {
   float x;
   float y;

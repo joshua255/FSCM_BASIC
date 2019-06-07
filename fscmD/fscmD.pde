@@ -12,13 +12,14 @@ fscmdCoBarGraphDisplay FSCMDRSSI;
 fscmdCoBarGraphDisplay TRANSRSSI;
 fscmdCoBarGraphDisplay TBATCGD;
 fscmdButton BSH;
+fscmdButton TLB;
 fscmdMapStatus MS;
 //////////////////constants to pass in/////////////////////////////////////////////////////
 float maxDispFlyDistMeters=1000;
 float WARNINGALT=0;
 //////////////////recieved data////////////////////////////////////////////////////////////
 ////////////////////////////////recieve
-boolean fscmHomeSet=true;
+boolean fscmHomeSet=false;
 int fscmFOriSystemCal=0;
 int fscmFOriGyroCal=0;
 int fscmFOriAccelCal=0;
@@ -58,7 +59,7 @@ float fscmHomeHeading = 0.000;
 float fscmHomeLat = 0.00000;
 float fscmHomeLon = 0.00000;
 /////////////////////////////fscmDVars
-boolean setHome=true;
+boolean setHome=false;
 int numWarnings=1;
 int warningID=1;
 long lastwarnedbattery=0;
@@ -90,12 +91,20 @@ void setup() {
   TRANSRSSI=new fscmdCoBarGraphDisplay(210, 2, 50, 50, -100, -15, -80, "Trans");
   //  TBATCGD=new fscmdCoBarGraphDisplay(370, 0, 80, 3.3, 6, 3.5, "T Bat");
   BSH=new fscmdButton(267, 5, 51, color(0, 150, 0), true, "set home");
+  TLB=new fscmdButton(267, 55, 51, color(200, 150, 0), true, "log tel");
   fscmdSetupFscmTComms();//nothing needs to be called in draw()
   s.write("f s c m starting,#");
 }
 void draw() {
   fscmFEul=fscmdQuaternionToEuler(fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFOriQuatW);
   setHome=BSH.display(setHome);
+  wastelogging=telogging;
+  if (telogging&&wastelogging) {
+    TLB.msg="rec...     "+telog.getRowCount();
+  } else {
+    TLB.msg="log tel";
+  }
+  telogging=TLB.display(telogging);
   fscmdHomeSet();
   runWarnings();
   //HDD.display(fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters, fscmFEul[0], fscmFGpsHeading); //float DHomeHeading, float DHeadingFromHome, float DDistMeters, float DDOFHeading, float DGPSHeading
@@ -168,8 +177,10 @@ void draw() {
   PWRCBG.display(fscmFBatVolt);
   FSCMDRSSI.display(fscmFSigStrengthOfTran);
   TRANSRSSI.display(fscmTSigStrengthFromF);
+  runTelog();
   mousePushed=false;
   keyPushed=false;
+  fscmDJustGotTS=false;
 }
 void fscmdDataToParseFromFscmT() {
   fscmHomeSet=fscmdParseFscmTBl();

@@ -16,7 +16,12 @@ import de.fhpotsdam.utils.*;
 import de.fhpotsdam.unfolding.mapdisplay.MapDisplayFactory;
 import java.util.List;
 import processing.net.*;
+import java.util.Date;
 /////////////////////////////reusable functions for fscm************************************************************
+Table telog;
+boolean telogging=false;
+boolean fscmDJustGotTS=false;
+boolean wastelogging=false;
 Table points;
 int pointHovered=-1;
 int pointClicked=-1;
@@ -37,6 +42,113 @@ void setupPoints() {
   points.addColumn("Latitude", Table.FLOAT);
   points.addColumn("Longitude", Table.FLOAT);
   points.addColumn("Altitude", Table.FLOAT);
+}
+void runTelog() {
+  if (telogging&&!wastelogging) {
+    setupTelog();
+  }
+  if (!telogging&&wastelogging) {
+    saveTelog();
+  }
+  if (telogging) {
+    recTelog();
+  }
+}
+void setupTelog() {
+  telog = new Table();
+  telog.addColumn("fscmD millis", Table.LONG);
+  telog.addColumn("fscmHomeSet", Table.INT);
+  telog.addColumn("setHome", Table.INT);
+  telog.addColumn("fscmHomeLat", Table.FLOAT);
+  telog.addColumn("fscmHomeLon", Table.FLOAT);
+  telog.addColumn("fscmHomeHeading", Table.FLOAT);
+  telog.addColumn("heading fm home", Table.FLOAT);
+  telog.addColumn("fscmFSigStrengthOfTran", Table.INT);
+  telog.addColumn("fscmTSigStrengthFromF", Table.INT);
+  telog.addColumn("fscmFOriSystemCal", Table.INT);
+  telog.addColumn("fscmFOriGyroCal", Table.INT);
+  telog.addColumn("fscmFOriAccelCal", Table.INT);
+  telog.addColumn("fscmFOriMagCal", Table.INT);
+  telog.addColumn("fscmFGpsLat", Table.FLOAT);
+  telog.addColumn("fscmFGpsLon", Table.FLOAT);
+  telog.addColumn("fscmFGpsSatStat", Table.FLOAT);
+  telog.addColumn("fscmFGpsSpeed", Table.FLOAT);
+  telog.addColumn("fscmFGpsHeading", Table.FLOAT);
+  telog.addColumn("fscmFDistMeters", Table.INT);
+  telog.addColumn("fscmFHeadFmHome", Table.FLOAT);
+  telog.addColumn("fscmFOriQuatX", Table.FLOAT);
+  telog.addColumn("fscmFOriQuatY", Table.FLOAT);
+  telog.addColumn("fscmFOriQuatZ", Table.FLOAT);
+  telog.addColumn("fscmFOriQuatW", Table.FLOAT);
+  telog.addColumn("fscmFGAlt", Table.FLOAT);
+  telog.addColumn("fscmFBatVolt", Table.FLOAT);
+  telog.addColumn("fscmFSigStrengthOfTran", Table.INT);
+  telog.addColumn("fscmTSigStrengthFromF", Table.INT);
+  telog.addColumn("fscmTBatVVal", Table.FLOAT);
+  telog.addColumn("fscmTRJXBVal", Table.INT);
+  telog.addColumn("fscmTRJYBVal", Table.INT);
+  telog.addColumn("fscmTLJXBVal", Table.INT);
+  telog.addColumn("fscmTLJYBVal", Table.INT);
+  telog.addColumn("fscmTLKBVal", Table.INT);
+  telog.addColumn("fscmTRKBVal", Table.INT);
+  telog.addColumn("fscmTLTVal", Table.INT);
+  telog.addColumn("fscmTRTVal", Table.INT);
+  telog.addColumn("fscmTLBVal", Table.INT);
+  telog.addColumn("fscmTRBVal", Table.INT);
+  telog.addColumn("fscmTETVal", Table.INT);
+  telog.addColumn("fscmFConnTime", Table.INT);
+  telog.addColumn("fscmCPitch", Table.FLOAT);
+  telog.addColumn("fscmCRoll", Table.FLOAT);
+}
+void recTelog() {
+  TableRow telrow=telog.addRow();
+  telrow.setLong("fscmD millis", millis());
+  telrow.setInt("fscmHomeSet", int(fscmHomeSet));
+  telrow.setInt("setHome", int(setHome));
+  telrow.setFloat("fscmHomeLat", fscmHomeLat);
+  telrow.setFloat("fscmHomeLon", fscmHomeLon);
+  telrow.setFloat("fscmHomeHeading", fscmHomeHeading);
+  telrow.setFloat("fscmFHeadFmHome", fscmFHeadFmHome);
+  telrow.setInt("fscmFSigStrengthOfTran", fscmFSigStrengthOfTran);
+  telrow.setInt("fscmTSigStrengthFromF", fscmTSigStrengthFromF);
+  telrow.setInt("fscmFOriSystemCal", fscmFOriSystemCal);
+  telrow.setInt("fscmFOriGyroCal", fscmFOriGyroCal);
+  telrow.setInt("fscmFOriAccelCal", fscmFOriAccelCal);
+  telrow.setInt("fscmFOriMagCal", fscmFOriMagCal);
+  telrow.setFloat("fscmFGpsLat", fscmFGpsLat);
+  telrow.setFloat("fscmFGpsLon", fscmFGpsLon);
+  telrow.setFloat("fscmFGpsSatStat", fscmFGpsSatStat);
+  telrow.setFloat("fscmFGpsSpeed", fscmFGpsSpeed);
+  telrow.setFloat("fscmFGpsHeading", fscmFGpsHeading);
+  telrow.setInt("fscmFDistMeters", fscmFDistMeters);
+  telrow.setFloat("fscmFHeadFmHome", fscmFHeadFmHome);
+  telrow.setFloat("fscmFOriQuatX", fscmFOriQuatX);
+  telrow.setFloat("fscmFOriQuatY", fscmFOriQuatY);
+  telrow.setFloat("fscmFOriQuatZ", fscmFOriQuatZ);
+  telrow.setFloat("fscmFOriQuatW", fscmFOriQuatW);
+  telrow.setFloat("fscmFGAlt", fscmFGAlt);
+  telrow.setFloat("fscmFBatVolt", fscmFBatVolt);
+  telrow.setInt("fscmFSigStrengthOfTran", fscmFSigStrengthOfTran);
+  telrow.setInt("fscmTSigStrengthFromF", fscmTSigStrengthFromF);
+  telrow.setFloat("fscmTBatVVal", fscmTBatVVal);
+  telrow.setInt("fscmTRJXBVal", fscmTRJXBVal);
+  telrow.setInt("fscmTRJYBVal", fscmTRJYBVal);
+  telrow.setInt("fscmTLJXBVal", fscmTLJXBVal);
+  telrow.setInt("fscmTLJYBVal", fscmTLJYBVal);
+  telrow.setInt("fscmTLKBVal", fscmTLKBVal);
+  telrow.setInt("fscmTRKBVal", fscmTRKBVal);
+  telrow.setInt("fscmTLTVal", int(fscmTLTVal));
+  telrow.setInt("fscmTRTVal", int(fscmTRTVal));
+  telrow.setInt("fscmTLBVal", int(fscmTLBVal));
+  telrow.setInt("fscmTRBVal", int(fscmTRBVal));
+  telrow.setInt("fscmTETVal", int(fscmTETVal));
+  telrow.setInt("fscmFConnTime", fscmFConnTime);
+  telrow.setFloat("fscmCPitch", fscmCPitch);
+  telrow.setFloat("fscmCRoll", fscmCRoll);
+}
+void saveTelog() {
+  saveTable(telog, "telog/DataFromTrial"+(new Date()).getTime()+".csv");
+  telog.clearRows();
 }
 class fscmdMapStatus {
   int x;
@@ -330,6 +442,7 @@ void serialEvent(Serial fscmTS) {
     fscmTS.write("<");
     fscmdDataToSendToFscmT();
     fscmTS.write(">");
+    fscmDJustGotTS=true;
   }
 }
 void fscmdSendDataFscmTBl(boolean d) {

@@ -29,11 +29,14 @@ boolean clickpoint=false;
 boolean hoverpoint=false;
 float[] fscmFEul=new float[3];
 int fscmdTSi=0;
+boolean homeSet=false;
 String[] fscmdTSInfo;
 String fscmdTSIn;
 boolean fscmdTSGood=false;
 boolean mousePushed=false;
 boolean keyPushed=false;
+long fscmDMillisGotTS=0;
+long fscmDTConnTime=0;
 import processing.serial.*;
 Serial fscmTS;
 void setupPoints() {
@@ -99,6 +102,8 @@ void setupTelog() {
   telog.addColumn("fscmFConnTime", Table.INT);
   telog.addColumn("fscmCPitch", Table.FLOAT);
   telog.addColumn("fscmCRoll", Table.FLOAT);
+  telog.addColumn("fscmFConnTime", Table.INT);
+  telog.addColumn("fscmTConnTime", Table.INT);
 }
 void recTelog() {
   TableRow telrow=telog.addRow();
@@ -145,6 +150,8 @@ void recTelog() {
   telrow.setInt("fscmFConnTime", fscmFConnTime);
   telrow.setFloat("fscmCPitch", fscmCPitch);
   telrow.setFloat("fscmCRoll", fscmCRoll);
+  telrow.setInt("fscmFConnTime", fscmFConnTime);
+  telrow.setInt("fscmTConnTime", int(fscmDTConnTime));
 }
 void saveTelog() {
   saveTable(telog, "telog/FSCMlog"+(new Date()).getTime()+".csv");
@@ -234,7 +241,7 @@ class fscmdMapDisplay {
     mpg=createGraphics(s, s, P2D);
   }
   void display(float FscmFGpsLat, float FscmFGpsLon, float DHomeHeading, float DDOFHeading, float DGPSHeading, float FscmHomeLat, float FscmHomeLon) {
-    if (fscmHomeSet) {
+    if (homeSet) {
       List<Location> zoomloclist = new ArrayList<Location>();
       map.rotateTo(0);
       zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(FscmHomeLat, FscmHomeLon), 90, maxDispFlyDistMeters/1110.00)));
@@ -243,9 +250,10 @@ class fscmdMapDisplay {
       zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(FscmHomeLat, FscmHomeLon), 0, maxDispFlyDistMeters/1110.00)));
       map.zoomAndPanToFit(zoomloclist);
       map.rotateTo(-radians(DHomeHeading));
-    }
-    while (!map.allTilesLoaded()) {
-      map.draw();
+      println(fscmHomeLat);
+      while (!map.allTilesLoaded()) {
+        map.draw();
+      }
     }
     map.draw();
     strokeWeight(1);
@@ -447,6 +455,8 @@ void serialEvent(Serial fscmTS) {
     fscmdDataToSendToFscmT();
     fscmTS.write(">");
     fscmDJustGotTS=true;
+    fscmDTConnTime=millis()-fscmDMillisGotTS;
+    fscmDMillisGotTS=millis();
   }
 }
 void fscmdSendDataFscmTBl(boolean d) {
@@ -480,6 +490,7 @@ void fscmdHomeSet() {
     fscmHomeLat=fscmFGpsLat;
     fscmHomeLon=fscmFGpsLon;
     setHome=false;
+    homeSet=true;
   }
 }
 int fscmdParseFscmTIn() {
@@ -754,7 +765,7 @@ class fscmdOrientationDisplay {
     dhomeheading=DHomeHeading; 
     dheadingfromhome=DHeadingFromHome; 
     ddistmeters=DDistMeters;
-    if (fscmHomeSet) {
+    if (homeSet) {
       List<Location> zoomloclist = new ArrayList<Location>();
       zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(fscmHomeLat, fscmHomeLon), 90, maxDispFlyDistMeters/1110.00)));
       zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(fscmHomeLat, fscmHomeLon), 180, maxDispFlyDistMeters/1110.00)));

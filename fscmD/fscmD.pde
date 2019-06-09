@@ -90,8 +90,8 @@ void setup() {
   FSCMDRSSI=new fscmdCoBarGraphDisplay(160, 2, 50, 50, -100, -15, -80, "FSCM");
   TRANSRSSI=new fscmdCoBarGraphDisplay(210, 2, 50, 50, -100, -15, -80, "Trans");
   //  TBATCGD=new fscmdCoBarGraphDisplay(370, 0, 80, 3.3, 6, 3.5, "T Bat");
-  BSH=new fscmdButton(267, 5, 51, color(0, 150, 0), true, "set home");
-  TLB=new fscmdButton(267, 55, 51, color(200, 150, 0), true, "log tel");
+  BSH=new fscmdButton(267, 5, 45, color(0, 150, 0), true, "set home");
+  TLB=new fscmdButton(267, 50, 45, color(200, 150, 0), true, "log tel");
   fscmdSetupFscmTComms();//nothing needs to be called in draw()
   s.write("f s c m starting,#");
 }
@@ -135,7 +135,9 @@ void draw() {
     "trans sig strength", 
     "fscmF sig strength", 
     "fscmC Pitch", 
-    "fscmC Roll"
+    "fscmC Roll", 
+    "fscmF Conn Time", 
+    "fscmT Conn Time"
   };
   float[] dispVal={
     int(fscmHomeSet), 
@@ -163,16 +165,18 @@ void draw() {
     fscmFSigStrengthOfTran, 
     fscmTSigStrengthFromF, 
     fscmCPitch, 
-    fscmCRoll
+    fscmCRoll, 
+    fscmFConnTime, 
+    fscmDTConnTime
   };
   fscmdDisplayInfo(dispMsg, dispVal, 0, 250, 170, 450, 10);
   MBGBOO.display(fscmFOriSystemCal);
   MBGBOA.display(fscmFOriAccelCal);
   MBGBOG.display(fscmFOriGyroCal);
   MBGBOM.display(fscmFOriMagCal);
+  //  TBATCGD.display(fscmTBatVVal);
   MS.display(points);
   MD.display(fscmFGpsLat, fscmFGpsLon, fscmHomeHeading, fscmFEul[0], fscmFGpsHeading, fscmHomeLat, fscmHomeLon);
-  //  TBATCGD.display(fscmTBatVVal);
   PWG.display(fscmFBatVolt);
   PWRCBG.display(fscmFBatVolt);
   FSCMDRSSI.display(fscmFSigStrengthOfTran);
@@ -180,6 +184,7 @@ void draw() {
   runTelog();
   mousePushed=false;
   keyPushed=false;
+  homeSet=false;
   fscmDJustGotTS=false;
 }
 void fscmdDataToParseFromFscmT() {
@@ -292,19 +297,19 @@ void runWarnings() {
         }
         warningID=-7;
       } else if (fscmTLKBVal>=210&&fscmTLKBVal<240) {
-        if (fscmTLBVal||warningID!=-7) {
+        if (fscmTLBVal||warningID!=-8) {
           s.write("battery voltage"+",#");
         } else {
           s.write(nf(fscmFBatVolt, 1, 1)+",#");
         }
-        warningID=-7;
-      } else if (fscmTLKBVal>=240&&fscmTLKBVal<256) {
-        if (fscmTLBVal||warningID!=-8) {
-          //          s.write("name"+",#");
-        } else {
-          //          s.write(nf(int(number))+",#");
-        }
         warningID=-8;
+      } else if (fscmTLKBVal>=240&&fscmTLKBVal<256) {
+        if (fscmTLBVal||warningID!=-9) {
+          s.write("ori stat"+",#");
+        } else {
+          s.write(nf(int(fscmFOriSystemCal))+",#");
+        }
+        warningID=-9;
       }
       s.clear();
     }

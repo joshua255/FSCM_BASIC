@@ -100,8 +100,8 @@ void setup() {
   MBGBOM=new fscmdMiBarGraphDisplay(120, 0, 35, 3, "BNO055 mag status");
   PWG=new fscmdPowerGraphDisplay(375, 0, 272, 100, 3.0, 4.2, 3000);
   PWRCBG=new fscmdCoBarGraphDisplay(PWG.posx-51, PWG.posy, PWG.sizey, 50, PWG.minval, PWG.maxval, 3.3, "BAT V");
-  FSCMDRSSI=new fscmdCoBarGraphDisplay(160, 2, 50, 50, -100, -15, -80, "FSCM");
-  TRANSRSSI=new fscmdCoBarGraphDisplay(210, 2, 50, 50, -100, -15, -80, "Trans");
+  FSCMDRSSI=new fscmdCoBarGraphDisplay(160, 2, 50, 50, -110, -35, -95, "FSCM");
+  TRANSRSSI=new fscmdCoBarGraphDisplay(210, 2, 50, 50, -110, -35, -95, "Trans");
   //  TBATCGD=new fscmdCoBarGraphDisplay(370, 0, 80, 3.3, 6, 3.5, "T Bat");
   BSH=new fscmdButton(263, 2, 59, 49, color(0, 150, 0), true, "set home");
   TLB=new fscmdButton(277, 55, 45, 44, color(200, 150, 0), true, "logtel");

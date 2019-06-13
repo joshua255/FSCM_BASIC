@@ -13,6 +13,7 @@ fscmdCoBarGraphDisplay TRANSRSSI;
 fscmdCoBarGraphDisplay TBATCGD;
 fscmdButton BSH;
 fscmdButton TLB;
+fscmdButton SWPB;
 fscmdMapStatus MS;
 //////////////////constants to pass in/////////////////////////////////////////////////////
 float maxDispFlyDistMeters=1000;
@@ -54,6 +55,10 @@ boolean fscmTETVal=false;
 int fscmFConnTime=0;
 float fscmCPitch=0.000;
 float fscmCRoll=0.000;
+byte fscmFWPI=0;
+float fscmFWH=0.000;
+float fscmFWD=0.000;
+float fscmFWA=0.000;
 //////////////////////////////setsometimes
 float fscmHomeHeading = 0.000;
 float fscmHomeLat = 0.00000;
@@ -65,7 +70,13 @@ int warningID=1;
 long lastwarnedbattery=0;
 long lastWarned=0;
 boolean altwarningsilenced=false;
+boolean sendWPoints=false;
 ///////////////////////////values to send
+byte pointsWNum=0;
+byte pointsWI=0;
+float pointsWLon=0.00;
+float pointsWLat=0.00;
+float pointsWAlt=0.00;
 ////////////////////////////////////////////////////////////////////////////////////
 void setup() {
   noSmooth();
@@ -90,14 +101,16 @@ void setup() {
   FSCMDRSSI=new fscmdCoBarGraphDisplay(160, 2, 50, 50, -100, -15, -80, "FSCM");
   TRANSRSSI=new fscmdCoBarGraphDisplay(210, 2, 50, 50, -100, -15, -80, "Trans");
   //  TBATCGD=new fscmdCoBarGraphDisplay(370, 0, 80, 3.3, 6, 3.5, "T Bat");
-  BSH=new fscmdButton(267, 5, 45, color(0, 150, 0), true, "set home");
-  TLB=new fscmdButton(267, 50, 45, color(200, 150, 0), true, "log tel");
+  BSH=new fscmdButton(267, 5, 50, color(0, 150, 0), true, "set home");
+  TLB=new fscmdButton(267, 60, 50, color(200, 150, 0), true, "log tel");
+  SWPB=new fscmdButton(210, 60, 50, color(255, 0, 255), true, "send points");
   fscmdSetupFscmTComms();//nothing needs to be called in draw()
   s.write("f s c m starting,#");
 }
 void draw() {
   fscmFEul=fscmdQuaternionToEuler(fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFOriQuatW);
   setHome=BSH.display(setHome);
+  fscmDWaypointsSend();
   wastelogging=telogging;
   if (telogging&&wastelogging) {
     TLB.msg="rec...     "+telog.getRowCount();
@@ -137,7 +150,11 @@ void draw() {
     "fscmC Pitch", 
     "fscmC Roll", 
     "fscmF Conn Time", 
-    "fscmT Conn Time"
+    "fscmT Conn Time", 
+    "fscmFWPI", 
+    "fscmFWH", 
+    "fscmFWD", 
+    "fscmFWA", 
   };
   float[] dispVal={
     int(fscmHomeSet), 
@@ -167,7 +184,11 @@ void draw() {
     fscmCPitch, 
     fscmCRoll, 
     fscmFConnTime, 
-    fscmDTConnTime
+    fscmDTConnTime, 
+    fscmFWPI, 
+    fscmFWH, 
+    fscmFWD, 
+    fscmFWA
   };
   fscmdDisplayInfo(dispMsg, dispVal, 0, 250, 170, 450, 10);
   MBGBOO.display(fscmFOriSystemCal);
@@ -223,10 +244,18 @@ void fscmdDataToParseFromFscmT() {
   fscmFConnTime=fscmdParseFscmTIn();
   fscmCPitch=fscmdParseFscmTFl();
   fscmCRoll=fscmdParseFscmTFl();
+  fscmFWPI=fscmdParseFscmTBy();
+  fscmFWH=fscmdParseFscmTFl();
+  fscmFWD=fscmdParseFscmTFl();
 }
 void fscmdDataToSendToFscmT() {
   fscmdSendDataFscmTBl(setHome);
   fscmdSendDataFscmTBl(numWarnings>0);
+  fscmdSendDataFscmTBy(pointsWNum);
+  fscmdSendDataFscmTBy(pointsWI);
+  fscmdSendDataFscmTFl(pointsWLon);
+  fscmdSendDataFscmTFl(pointsWLat);
+  fscmdSendDataFscmTFl(pointsWAlt);
 }
 void runWarnings() {
   numWarnings=0;

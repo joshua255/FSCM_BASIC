@@ -1,3 +1,33 @@
+void fscmFFWaypoints() {
+  if (pointsWNum == 0) {
+    numWayPoints = 0;
+    fscmFWPI = 0;
+  }
+  if (pointsWI <= pointsWNum + 100 && pointsWI > 100) {
+    numWayPoints = pointsWNum;
+    waypoints[0][pointsWI - 101] = pointsWLat;
+    waypoints[1][pointsWI - 101] = pointsWLon;
+    waypoints[2][pointsWI - 101] = pointsWAlt;
+    fscmFWPI = 1;
+  } else {
+    if (numWayPoints > 0) {
+      fscmFWD = TinyGPSPlus::distanceBetween(gps.location.lat(), gps.location.lng(), waypoints[0][fscmFWPI - 1], waypoints[1][fscmFWPI - 1]);
+      fscmFWH = TinyGPSPlus::courseTo(gps.location.lat(), gps.location.lng(), waypoints[0][fscmFWPI - 1], waypoints[1][fscmFWPI - 1]);
+      fscmFWA = waypoints[2][fscmFWPI] - fscmFGAlt;
+      if (fscmFWD < WAYPOINT_CLOSE_ENOUGH_DIST) {
+        fscmFWPI++;
+        if (fscmFWPI > numWayPoints) {
+          fscmFWPI = 0;
+        }
+      }
+    } else {
+      fscmFWPI = 0;
+      fscmFWD = 0;
+      fscmFWH = 0;
+      fscmFWA = 0;
+    }
+  }
+}
 void fscmdQuaternionToEulerSet(float qx, float qy, float qz, float qw) {
   fscmFHeading = 90 - degrees(atan2(2.0 * (qx * qy + qz * qw), (qx * qx - qy * qy - qz * qz + qw * qw)));
   if (fscmFHeading < 0) {

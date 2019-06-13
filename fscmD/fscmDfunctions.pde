@@ -46,6 +46,12 @@ void setupPoints() {
   points.addColumn("Longitude", Table.FLOAT);
   points.addColumn("Altitude", Table.FLOAT);
 }
+void fscmDLoadWaypoints() {
+  points=loadTable("/waypoints/points.csv", "header");
+}
+void fscmDSaveWaypoints() {
+  saveTable(points, "/waypoints/points.csv");
+}
 void fscmDWaypointsSend() {
   if (sendWPoints==false&&fscmDJustGotTS) {
     pointsWI=0;
@@ -443,29 +449,36 @@ color colorHSB(float H, float S, float B) {
 class fscmdButton {
   int x;
   int y;
-  int s;
+  int w;
+  int h;
   color c;
   boolean l;
   String msg;
   boolean t=false;
   boolean lp=false;
-  fscmdButton(int X, int Y, int S, color C, boolean L, String MSG) {
+  boolean jp=false;
+  fscmdButton(int X, int Y, int W, int H, color C, boolean L, String MSG) {
     x=X;
     y=Y;
-    s=S;
+    w=W;
+    h=H;
     c=C;
     l=L;
     msg=MSG;
   }
   boolean display(boolean v) {
     t=v;
+    pushStyle();
     strokeWeight(4);
     stroke(c);
-    if (mouseX>x&&mouseX<x+s&&mouseY>y&&mouseY<y+s&&mousePressed) {
+    textLeading(15);
+    jp=false;
+    if (mouseX>x&&mouseX<x+w&&mouseY>y&&mouseY<y+h&&mousePressed) {
       stroke(red(c)/2, green(c)/2, blue(c));
       if (lp==false) {
         if (l) {
           t=!t;
+          jp=true;
         } else {
           t=true;
         }
@@ -482,10 +495,11 @@ class fscmdButton {
     } else {
       fill(0);
     }
-    rect(x, y, s, s);
+    rect(x, y, w, h);
     textSize(14);
     fill(155);
-    text(msg, x, y+s/6, s, s);
+    text(msg, x, y, w, h);
+    popStyle();
     return t;
   }
 }

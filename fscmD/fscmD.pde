@@ -14,6 +14,8 @@ fscmdCoBarGraphDisplay TBATCGD;
 fscmdButton BSH;
 fscmdButton TLB;
 fscmdButton SWPB;
+fscmdButton SPB;
+fscmdButton LPB;
 fscmdMapStatus MS;
 //////////////////constants to pass in/////////////////////////////////////////////////////
 float maxDispFlyDistMeters=1000;
@@ -101,9 +103,11 @@ void setup() {
   FSCMDRSSI=new fscmdCoBarGraphDisplay(160, 2, 50, 50, -100, -15, -80, "FSCM");
   TRANSRSSI=new fscmdCoBarGraphDisplay(210, 2, 50, 50, -100, -15, -80, "Trans");
   //  TBATCGD=new fscmdCoBarGraphDisplay(370, 0, 80, 3.3, 6, 3.5, "T Bat");
-  BSH=new fscmdButton(267, 5, 50, color(0, 150, 0), true, "set home");
-  TLB=new fscmdButton(267, 60, 50, color(200, 150, 0), true, "log tel");
-  SWPB=new fscmdButton(210, 60, 50, color(255, 0, 255), true, "send points");
+  BSH=new fscmdButton(263, 2, 59, 49, color(0, 150, 0), true, "set home");
+  TLB=new fscmdButton(277, 55, 45, 44, color(200, 150, 0), true, "logtel");
+  SWPB=new fscmdButton(230, 55, 45, 44, color(255, 0, 255), true, "send points");
+  SPB=new fscmdButton(173, 55, 55, 20, color(#FF00B7), true, "saveP");
+  LPB=new fscmdButton(173, 79, 55, 20, color(#D400FF), true, "loadP");
   fscmdSetupFscmTComms();//nothing needs to be called in draw()
   s.write("f s c m starting,#");
 }
@@ -118,6 +122,14 @@ void draw() {
     TLB.msg="log tel";
   }
   telogging=TLB.display(telogging);
+  SPB.display(false);
+  LPB.display(false);
+  if (SPB.jp) {
+    fscmDSaveWaypoints();
+  }
+  if (LPB.jp) {
+    fscmDLoadWaypoints();
+  }
   fscmdHomeSet();
   runWarnings();
   //HDD.display(fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters, fscmFEul[0], fscmFGpsHeading); //float DHomeHeading, float DHeadingFromHome, float DDistMeters, float DDOFHeading, float DGPSHeading

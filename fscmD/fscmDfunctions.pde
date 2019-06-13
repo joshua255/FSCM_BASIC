@@ -59,21 +59,21 @@ void fscmDWaypointsSend() {
   }
   if (sendWPoints) {
     if (fscmDJustGotTS) {
-      if (byte(points.getRowCount()-1)<=25) {//size of fscmF waypoints array
-        pointsWNum=byte(points.getRowCount()-1);
+      if (byte(points.getRowCount())<=25) {//size of fscmF waypoints array
+        pointsWNum=byte(points.getRowCount());
         if (pointsWI<100) {
           pointsWI=100;
         }
-        if (pointsWI>=100+points.getRowCount()-1) {
+        if (pointsWI>=100+points.getRowCount()) {
           sendWPoints=false;
           pointsWI=0;
         } else {
           SWPB.msg=str(pointsWI-99)+"/"+nf(pointsWNum);
-          if (pointsWI>=100&&pointsWI<100+points.getRowCount()-1) {          
+          if (pointsWI>=100&&pointsWI<100+points.getRowCount()) {          
             pointsWI++;
-            pointsWLat=points.getFloat(pointsWI-100, "Latitude");
-            pointsWLon=points.getFloat(pointsWI-100, "Longitude");
-            pointsWAlt=points.getFloat(pointsWI-100, "Altitude");
+            pointsWLat=points.getFloat(pointsWI-101, "Latitude");
+            pointsWLon=points.getFloat(pointsWI-101, "Longitude");
+            pointsWAlt=points.getFloat(pointsWI-101, "Altitude");
           }
         }
       } else {
@@ -215,7 +215,7 @@ class fscmdMapStatus {
     strokeWeight(0);
     fill(30);
     rect(x, y, w, h);
-    if (pointClicked>0) {
+    if (pointClicked>=0&&pointClicked<=255) {
       fill(255);
       textSize(10);
       points.setFloat(pointClicked, "Latitude", textBox(1, pointClicked, points.getFloat(pointClicked, "Latitude"), 3, y+10, w-6));
@@ -328,7 +328,7 @@ class fscmdMapDisplay {
     }
     mpg.beginDraw();
     mpg.clear();
-    for (int i=1; i<points.getRowCount(); i++) {
+    for (int i=0; i<points.getRowCount(); i++) {
       marker(i, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-x, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-y, colorHSB(map(i, 1, points.getRowCount(), 0, 255), 100, 255), nf(points.getInt(i, "ID")), nf(points.getFloat(i, "Altitude"), 0, 1), nf((540-DDOFHeading+degrees((float)GeoUtils.getAngleBetween(new Location(FscmFGpsLat, FscmFGpsLon), new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))))%360-180, 0, 2), str((int)(1000.0000*GeoUtils.getDistance(FscmFGpsLat, FscmFGpsLon, points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))));
     }
     if (clickpoint==false&&mousePushed&&mouseX>x&&mouseX<x+s&&mouseY>y&&mouseY<y+s) {
@@ -339,7 +339,7 @@ class fscmdMapDisplay {
       pointHovered=-1;
     }
     hoverpoint=false;
-    marker(0, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y, color(255), "home", "0", nf((720-DDOFHeading+fscmFHeadFmHome)%360-180, 0, 3), nf(fscmFDistMeters));
+    marker(256, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y, color(255), "home", "0", nf((720-DDOFHeading+fscmFHeadFmHome)%360-180, 0, 3), nf(fscmFDistMeters));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters/4, color(0, 200, 0));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters/2, color(200, 200, 0));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters, color(200, 0, 0));
@@ -921,7 +921,7 @@ class fscmdOrientationDisplay {
     sTx.pushMatrix();
     sTx.translate(-cos(-radians(dheadingfromhome))*ddistmeters*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat, 0);
     sTx.rotateZ(PI/2);
-    for (int i=1; i<points.getRowCount(); i++) {
+    for (int i=0; i<points.getRowCount(); i++) {
       sTx.pushMatrix();
       sTx.translate((map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-width-10-landRat*maxDistMeters), (map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-landRat*maxDistMeters), landRat*points.getFloat(i, "Altitude"));
       sTx.noStroke();

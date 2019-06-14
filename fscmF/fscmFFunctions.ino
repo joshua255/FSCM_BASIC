@@ -30,9 +30,11 @@ void fscmFFWaypoints() {
 }
 void fscmdQuaternionToEulerSet(float qx, float qy, float qz, float qw) {
   fscmFHeading = 90 - degrees(atan2(2.0 * (qx * qy + qz * qw), (qx * qx - qy * qy - qz * qz + qw * qw)));
+  fscmFHeading += MAGNETIC_VARIATION;
   if (fscmFHeading < 0) {
     fscmFHeading += 360;
   }
+  Serial.println(fscmFHeading);
   fscmFPitch = -degrees(asin(-2.0 * (qx * qz - qy * qw) / (qx * qx + qy * qy + qz * qz + qw * qw)));
   fscmFRoll = degrees(atan2(2.0 * (qy * qz + qx * qw), (-qx * qx - qy * qy + qz * qz + qw * qw)));
 }

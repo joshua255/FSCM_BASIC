@@ -19,6 +19,7 @@ void SERCOM1_Handler()
 /////////////////////////////////////////fscmF internal
 boolean fscmFEnabled = false;
 float WAYPOINT_CLOSE_ENOUGH_DIST = 10.0;
+float MAGNETIC_VARIATION = 15.0; //degrees
 uint8_t fscmFRBuf[RH_RF95_MAX_MESSAGE_LEN];
 uint8_t fscmFRLen = 0;
 byte fscmFRI = 0;
@@ -41,8 +42,8 @@ float fscmHomeHeading = 0;
 float fscmFHeading, fscmFPitch, fscmFRoll = 0.000;
 boolean fscmHomeSet = false;
 uint8_t fscmFOriSystemCal, fscmFOriGyroCal, fscmFOriAccelCal, fscmFOriMagCal = 0;
-float fscmFGpsLon = -100.0000;
-float fscmFGpsLat = 40.0000;
+float fscmFGpsLon = 0.0000;
+float fscmFGpsLat = 0.0000;
 float fscmFGpsSatStat = 0;
 float fscmFGpsSpeed = 0;
 float fscmFGpsHeading = 0;

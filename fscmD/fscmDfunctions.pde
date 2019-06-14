@@ -47,7 +47,12 @@ void setupPoints() {
   points.addColumn("Altitude", Table.FLOAT);
 }
 void fscmDLoadWaypoints() {
-  points=loadTable("/waypoints/points.csv", "header");
+  try {
+    points=loadTable("/waypoints/points.csv", "header");
+  }
+  catch(Exception e) {
+    println("error loading waypoints");
+  }
 }
 void fscmDSaveWaypoints() {
   saveTable(points, "/waypoints/points.csv");
@@ -329,7 +334,7 @@ class fscmdMapDisplay {
     mpg.beginDraw();
     mpg.clear();
     for (int i=0; i<points.getRowCount(); i++) {
-      marker(i, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-x, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-y, colorHSB(map(i, 1, points.getRowCount(), 0, 255), 100, 255), nf(points.getInt(i, "ID")), nf(points.getFloat(i, "Altitude"), 0, 1), nf((540-DDOFHeading+degrees((float)GeoUtils.getAngleBetween(new Location(FscmFGpsLat, FscmFGpsLon), new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))))%360-180, 0, 2), str((int)(1000.0000*GeoUtils.getDistance(FscmFGpsLat, FscmFGpsLon, points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))));
+      marker(i, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-x, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-y, colorHSB(map(i, 0, points.getRowCount(), 0, 255), 100, 255), nf(points.getInt(i, "ID")), nf(points.getFloat(i, "Altitude"), 0, 1), nf((540-DDOFHeading+degrees((float)GeoUtils.getAngleBetween(new Location(FscmFGpsLat, FscmFGpsLon), new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))))%360-180, 0, 2), str((int)(1000.0000*GeoUtils.getDistance(FscmFGpsLat, FscmFGpsLon, points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))));
     }
     if (clickpoint==false&&mousePushed&&mouseX>x&&mouseX<x+s&&mouseY>y&&mouseY<y+s) {
       pointClicked=-1;
@@ -584,6 +589,7 @@ boolean fscmdParseFscmTBl() {
 float[] fscmdQuaternionToEuler(float qx, float qy, float qz, float qw) {
   float[] eul=new float[3];
   eul[0] = 90-degrees(atan2(2.0*(qx*qy+qz*qw), (qx*qx-qy*qy-qz*qz+qw*qw)));
+  eul[0]+=MAGNETIC_VARIATION;
   if (eul[0]<0) {
     eul[0]+=360;
   }
@@ -873,7 +879,8 @@ class fscmdOrientationDisplay {
     sTw.pushMatrix(); 
     sTw.translate(size/2, size/2, (size/2.0) / tan(PI*30.0 / 180.0)); 
     float[] rEs=fscmdoritoAxisAngle(); 
-    sTw.rotateY(radians(180)); 
+    sTw.rotateY(radians(180));    
+    sTw.rotateY(radians(MAGNETIC_VARIATION));
     sTw.rotate(rEs[0], rEs[2], rEs[3], rEs[1]);
     sTw.shape(sphere); 
     sTw.noStroke(); 
@@ -891,18 +898,19 @@ class fscmdOrientationDisplay {
     sTx.background(255); 
     sTx.pushMatrix(); 
     sTx.translate(size/2, size/2, (size/2.0) / tan(PI*30.0 / 180.0)); 
-    sTx.rotateY(radians(180)); 
-    sTx.rotate(rEs[0], rEs[2], rEs[3], rEs[1]);
+    sTx.rotateY(radians(180));
+    sTx.rotate(rEs[0], rEs[2], rEs[3], rEs[1]);    
+    sTx.rotateY(radians(MAGNETIC_VARIATION));
     sTx.pushMatrix(); 
     sTx.translate(-cos(-radians(dheadingfromhome))*ddistmeters*landRat, cgaltitude*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat);
-    sTx.rotateX(radians(450)); 
+    sTx.rotateX(radians(450));
     sTx.rotateZ(PI/2);
     sTx.image(sTxL, -landRat*maxDistMeters, -landRat*maxDistMeters); 
     sTx.rotateZ(-PI/2);
     sTx.fill(255, 182, 0, constrain(map(ddistmeters, 0, 15, 30, 255), 30, 255)); 
     sTx.rotate(radians(dhomeheading)); 
     sTx.strokeWeight(1); 
-    sTx.stroke(0); 
+    sTx.stroke(0);
     sTx.box(landRat*maxDistMeters/500); 
     sTx.translate(landRat*maxDistMeters/600, 0, landRat*maxDistMeters/1200);
     sTx.noStroke(); 
@@ -921,12 +929,13 @@ class fscmdOrientationDisplay {
     sTx.pushMatrix();
     sTx.translate(-cos(-radians(dheadingfromhome))*ddistmeters*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat, 0);
     sTx.rotateZ(PI/2);
+
     for (int i=0; i<points.getRowCount(); i++) {
       sTx.pushMatrix();
       sTx.translate((map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-width-10-landRat*maxDistMeters), (map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-landRat*maxDistMeters), landRat*points.getFloat(i, "Altitude"));
       sTx.noStroke();
       sTx.colorMode(HSB);
-      sTx.fill(map(i, 1, points.getRowCount(), 0, 255), 255, 100);
+      sTx.fill(map(i, 0, points.getRowCount(), 0, 255), 255, 100);
       sTx.sphere(3*landRat);
       sTx.colorMode(RGB);
       sTx.popMatrix();

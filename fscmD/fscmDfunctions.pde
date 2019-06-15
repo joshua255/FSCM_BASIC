@@ -35,6 +35,7 @@ String fscmdTSIn;
 boolean fscmdTSGood=false;
 boolean mousePushed=false;
 boolean keyPushed=false;
+boolean mouseDragged=false;
 long fscmDMillisGotTS=0;
 long fscmDTConnTime=0;
 import processing.serial.*;
@@ -290,6 +291,7 @@ class fscmdMapDisplay {
   float maxDispFlyDistMeters;
   UnfoldingMap map;
   PGraphics mpg;
+  EventDispatcher eventDispatcher;
   fscmdMapDisplay(int X, int Y, int S, float MaxDispFlyDistMeters) {
     x=X;
     y=Y;
@@ -298,7 +300,11 @@ class fscmdMapDisplay {
     map = new UnfoldingMap(fscmD.this, x, y, s, s, new Microsoft.HybridProvider());
     map.setZoomRange(4, 18);
     map.zoomAndPanTo(10, new Location(fscmHomeLat, fscmHomeLon));
-    MapUtils.createDefaultEventDispatcher(fscmD.this, map);
+    eventDispatcher = new EventDispatcher();
+    MouseHandler mouseHandler = new MouseHandler(fscmD.this, map);
+    eventDispatcher.addBroadcaster(mouseHandler);
+    eventDispatcher.register(map, PanMapEvent.TYPE_PAN, map.getId());
+    eventDispatcher.register(map, ZoomMapEvent.TYPE_ZOOM, map.getId());
     mpg=createGraphics(s, s, P2D);
   }
   void display(float FscmFGpsLat, float FscmFGpsLon, float DHomeHeading, float DDOFHeading, float DGPSHeading, float FscmHomeLat, float FscmHomeLon) {
@@ -315,6 +321,13 @@ class fscmdMapDisplay {
         map.draw();
       }
     }
+    if (pointClicked>=0&&pointClicked<=255) {
+      eventDispatcher.unregister(map, PanMapEvent.TYPE_PAN, map.getId());
+      eventDispatcher.unregister(map, ZoomMapEvent.TYPE_ZOOM, map.getId());
+    } else {
+      eventDispatcher.register(map, PanMapEvent.TYPE_PAN, map.getId());
+      eventDispatcher.register(map, ZoomMapEvent.TYPE_ZOOM, map.getId());
+    }
     map.draw();
     strokeWeight(1);
     stroke(255);
@@ -330,6 +343,12 @@ class fscmdMapDisplay {
       points.setInt(points.getRowCount()-1, "ID", points.getRowCount()-1);
       points.setFloat(points.getRowCount()-1, "Latitude", ploc.getLat());
       points.setFloat(points.getRowCount()-1, "Longitude", ploc.getLon());
+    }
+    if (mousePressed&&mouseDragged&&!mousePushed&&mouseX>x&&mouseX<x+s&&mouseY>y&&mouseY<y+s&&pointClicked==pointHovered&&pointClicked>=0&&pointClicked<=255) {
+      Location ploc= map.getLocationFromScreenPosition(mouseX, mouseY);
+      points.setInt(pointClicked, "ID", pointClicked);
+      points.setFloat(pointClicked, "Latitude", ploc.getLat());
+      points.setFloat(pointClicked, "Longitude", ploc.getLon());
     }
     mpg.beginDraw();
     mpg.clear();
@@ -1126,4 +1145,7 @@ void mousePressed() {
 }
 void keyPressed() {
   keyPushed=true;
+}
+void mouseDragged(){
+  mouseDragged=true;
 }

@@ -252,6 +252,7 @@ void draw() {
   keyPushed=false;
   homeSet=false;
   fscmDJustGotTS=false;
+  mouseDragged=false;
 }
 void fscmdDataToParseFromFscmT() {
   fscmHomeSet=fscmdParseFscmTBl();

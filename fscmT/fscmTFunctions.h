@@ -77,6 +77,7 @@ float fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFOriQuatW = 0.0000;
 float fscmFGAlt = 1;
 float fscmFBatVolt = 1;
 int fscmFSigStrengthOfTran = 10;
+byte fscmFWPI = 0;
 /////////////////////////////recieve from fscmD
 boolean fscmRequestHomeSet = false;
 boolean fscmDWarnings = false;
@@ -85,4 +86,4 @@ byte pointsWI = 0;
 float pointsWLon = 0.00;
 float pointsWLat = 0.00;
 float pointsWAlt = 0.00;
-byte fscmFWPI = 0;
+float WaypointCloseEnoughDist = 10.00;

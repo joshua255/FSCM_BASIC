@@ -17,9 +17,14 @@ fscmdButton SWPB;
 fscmdButton SPB;
 fscmdButton LPB;
 fscmdMapStatus MS;
+fscmdSlider WPCEDS;
+fscmdSlider WAS;
+fscmdButton SSB;
+fscmdButton LSB;
 //////////////////constants to pass in/////////////////////////////////////////////////////
 float maxDispFlyDistMeters=1000;
 float WARNINGALT=0;
+float WAYPOINT_CLOSE_ENOUGH_DIST=10.0;
 float MAGNETIC_VARIATION=15.0;
 //////////////////recieved data////////////////////////////////////////////////////////////
 ////////////////////////////////recieve
@@ -83,7 +88,7 @@ float pointsWAlt=0.00;
 ////////////////////////////////////////////////////////////////////////////////////
 void setup() {
   noSmooth();
-  frameRate(10);
+  frameRate(8);
   size(1350, 700, P2D);//P2D is important
   background(0);
   stroke(255);
@@ -109,10 +114,17 @@ void setup() {
   SWPB=new fscmdButton(230, 55, 45, 44, color(255, 0, 255), true, "send points");
   SPB=new fscmdButton(173, 55, 55, 20, color(#FF00B7), true, "saveP");
   LPB=new fscmdButton(173, 79, 55, 20, color(#D400FF), true, "loadP");
+  SSB=new fscmdButton(173, 103, 55, 20, color(#5AFF03), true, " sv set");
+  LSB=new fscmdButton(173, 127, 55, 20, color(#03FF72), true, " ld set");
+  WPCEDS=new fscmdSlider(243, 160, 20, color(255, 0, 255), "wpce", WAYPOINT_CLOSE_ENOUGH_DIST, 0, 30); //  fscmdSlider(float X, float Y, float W, color C, String T, float VAL, float MIN, float MAX) 
+  WAS=new fscmdSlider(243, 172, 20, color(100, 20, 20), "wrnA", WARNINGALT, -2, 10);
   fscmdSetupFscmTComms();//nothing needs to be called in draw()
   s.write("f s c m starting,#");
 }
 void draw() {
+  noStroke();
+  fill(15);
+  rect(170, 101, 480, 124);
   fscmFEul=fscmdQuaternionToEuler(fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFOriQuatW);
   setHome=BSH.display(setHome);
   fscmDWaypointsSend();
@@ -130,6 +142,24 @@ void draw() {
   }
   if (LPB.jp) {
     fscmDLoadWaypoints();
+  }
+  SSB.display(false);
+  LSB.display(false);
+  if (SSB.jp) {
+    String setfl[]=new String[10];
+    setfl[1]=str(WARNINGALT);
+    setfl[2]=str(WAYPOINT_CLOSE_ENOUGH_DIST);
+    saveStrings("settings/settings.txt", setfl);
+  }
+  if (LSB.jp||frameCount==1) {
+    try {
+      String setfl[]=loadStrings("settings/settings.txt");
+      WARNINGALT=float(setfl[1]);
+      WAYPOINT_CLOSE_ENOUGH_DIST=float(setfl[2]);
+    }
+    catch(Exception e) {
+      println("error loading settings");
+    }
   }
   fscmdHomeSet();
   runWarnings();
@@ -215,6 +245,8 @@ void draw() {
   PWRCBG.display(fscmFBatVolt);
   FSCMDRSSI.display(fscmFSigStrengthOfTran);
   TRANSRSSI.display(fscmTSigStrengthFromF);
+  WARNINGALT=WAS.display(WARNINGALT);
+  WAYPOINT_CLOSE_ENOUGH_DIST=WPCEDS.display(WAYPOINT_CLOSE_ENOUGH_DIST);
   runTelog();
   mousePushed=false;
   keyPushed=false;
@@ -269,6 +301,7 @@ void fscmdDataToSendToFscmT() {
   fscmdSendDataFscmTFl(pointsWLon);
   fscmdSendDataFscmTFl(pointsWLat);
   fscmdSendDataFscmTFl(pointsWAlt);
+  fscmdSendDataFscmTFl(WAYPOINT_CLOSE_ENOUGH_DIST);
 }
 void runWarnings() {
   numWarnings=0;

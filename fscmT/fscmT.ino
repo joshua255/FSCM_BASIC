@@ -73,6 +73,7 @@ void fscmTFDataToSendToFscmF() {
   fscmTFSendDataFscmFFl(pointsWLon);
   fscmTFSendDataFscmFFl(pointsWLat);
   fscmTFSendDataFscmFFl(pointsWAlt);
+  fscmTFSendDataFscmFFl(WaypointCloseEnoughDist);
 }
 void fscmTFDataToSendToFscmD() {
   fscmTFSendDataFscmDBl(fscmHomeSet);
@@ -123,4 +124,5 @@ void fscmTFDataToParseFromFscmD() {
   pointsWLon = fscmTFParseDataFscmDFl();
   pointsWLat = fscmTFParseDataFscmDFl();
   pointsWAlt = fscmTFParseDataFscmDFl();
+  WaypointCloseEnoughDist = fscmTFParseDataFscmDFl();
 }

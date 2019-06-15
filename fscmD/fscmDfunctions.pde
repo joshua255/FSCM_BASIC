@@ -741,7 +741,7 @@ class fscmdOrientationDisplay {
 
   //////////internal vars
   int stgiRes=2500; 
-  float landRat=2; 
+  float landRat=3; 
 
   //////////updated vars
   float oriqw=1; 
@@ -935,8 +935,8 @@ class fscmdOrientationDisplay {
       sTx.translate((map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-width-10-landRat*maxDistMeters), (map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-landRat*maxDistMeters), landRat*points.getFloat(i, "Altitude"));
       sTx.noStroke();
       sTx.colorMode(HSB);
-      sTx.fill(map(i, 0, points.getRowCount(), 0, 255), 255, 100);
-      sTx.sphere(3*landRat);
+      sTx.fill(map(i, 0, points.getRowCount(), 0, 255), 255, 100, 128);
+      sTx.sphere(WAYPOINT_CLOSE_ENOUGH_DIST*landRat);
       sTx.colorMode(RGB);
       sTx.popMatrix();
     }
@@ -1046,7 +1046,7 @@ class fscmdOrientationDisplay {
 //    popMatrix();
 //  }
 //}
-class Slider {
+class fscmdSlider {
   float x;
   float y;
   float w;
@@ -1058,7 +1058,7 @@ class Slider {
   boolean m=false;
   boolean n=false;
   String valStr="";
-  Slider(float X, float Y, float W, color C, String T, float VAL, float MIN, float MAX) {
+  fscmdSlider(float X, float Y, float W, color C, String T, float VAL, float MIN, float MAX) {
     x=X;
     y=Y;
     w=W;
@@ -1068,18 +1068,18 @@ class Slider {
     min=MIN;
     max=MAX;
   }
-  float run(float V) {
+  float display(float V) {
     val=V;
     noStroke();
     fill(red(c)/1.5, green(c)/1.5, blue(c)/1.5);
     rect(x-5, y-2, w+10, 4);
-    textSize(12);
+    textSize(13);
     fill(c);
     text(t, x+w+7, y+3);
     if (!n) {
-      text((nf(val, 3, 6)), x-100, y+3);
+      text((nf(val, 2, 4)), x-70, y+3);
     }
-    if (mouseX>=x-100&&mouseX<=x-10&&mouseY<=y+3&&mouseY>=y-10&&mousePushed) {
+    if (mouseX>=x-73&&mouseX<=x-10&&mouseY<=y+1&&mouseY>=y-6&&mousePushed) {
       n=true;
       valStr="";
     } else if (n==true&&(mousePushed||(keyPressed&&key==ENTER))) {
@@ -1089,12 +1089,12 @@ class Slider {
       }
     }
     if (n) {
-      text(valStr, x-100, y+3);
+      text(valStr, x-70, y+3);
       stroke(red(c)/2, green(c)/2, blue(c)/2);
       strokeWeight(1);
       noFill();
-      rect(x-103, y+4, 102, -14);
-      if (((key==45||key ==46||(key>=48&&key<=57)) && (key != CODED)&&keyPushed&&textWidth(valStr)<98)) {
+      rect(x-70, y+4, 65, -12);
+      if (((key==45||key ==46||(key>=48&&key<=57)) && (key != CODED)&&keyPushed&&textWidth(valStr)<60)) {
         valStr+=key;
       }
       if (keyPushed&&key==BACKSPACE&&valStr.length()>0) {
@@ -1104,7 +1104,7 @@ class Slider {
     noStroke();
     fill(255);
     if (mousePushed) {
-      if ((mouseX>=x-5&&mouseX<=x+w+5&&mouseY>=y-5&&mouseY<=y+5)) {
+      if ((mouseX>=x-5&&mouseX<=x+w+5&&mouseY>=y-4&&mouseY<=y+4)) {
         m=true;
       } else {
         m=false;
@@ -1117,7 +1117,7 @@ class Slider {
       val=constrain(map(mouseX-x, 0, w, min, max), min, max);
       fill(100);
     }
-    rect(x+-5+constrain(map(val, min, max, 0, w), 0, w), y-5, 10, 10);
+    rect(x-5+constrain(map(val, min, max, 0, w), 0, w), y-5, 10, 10);
     return val;
   }
 }

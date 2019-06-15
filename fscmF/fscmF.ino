@@ -89,4 +89,5 @@ void fscmFFDataToParseFromFscmT() {
   pointsWLon = fscmFFParseDataFscmTFl();
   pointsWLat = fscmFFParseDataFscmTFl();
   pointsWAlt = fscmFFParseDataFscmTFl();
+  WAYPOINT_CLOSE_ENOUGH_DIST = fscmFFParseDataFscmTFl();
 }

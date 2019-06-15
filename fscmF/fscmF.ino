@@ -13,6 +13,7 @@ void loop() {
   fscmFFRadio();
   if (gotFscmTMsgLast) {
     fscmFFCoproc();
+    fscmFFWaypoints();
   }
   fscmFFHomeSet();
   fscmFGAlt = fscmFFAltCalc();
@@ -67,6 +68,10 @@ void fscmFFDataToSendToFscmT() {
   fscmFFSendDataFscmTIn(fscmFSigStrengthOfTran);
   fscmFFSendDataFscmTFl(fscmCPitch);
   fscmFFSendDataFscmTFl(fscmCRoll);
+  fscmFFSendDataFscmTBy(fscmFWPI);
+  fscmFFSendDataFscmTFl(fscmFWH);
+  fscmFFSendDataFscmTFl(fscmFWD);
+  fscmFFSendDataFscmTFl(fscmFWA);
 }
 void fscmFFDataToParseFromFscmT() {
   fscmRequestHomeSet = fscmFFParseDataFscmTBl();
@@ -79,4 +84,10 @@ void fscmFFDataToParseFromFscmT() {
   rk = fscmFFParseDataFscmTBy();
   lt = fscmFFParseDataFscmTBl();
   rt = fscmFFParseDataFscmTBl();
+  pointsWNum = fscmFFParseDataFscmTBy();
+  pointsWI = fscmFFParseDataFscmTBy();
+  pointsWLon = fscmFFParseDataFscmTFl();
+  pointsWLat = fscmFFParseDataFscmTFl();
+  pointsWAlt = fscmFFParseDataFscmTFl();
+  WAYPOINT_CLOSE_ENOUGH_DIST = fscmFFParseDataFscmTFl();
 }

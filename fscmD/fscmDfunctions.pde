@@ -35,6 +35,7 @@ String fscmdTSIn;
 boolean fscmdTSGood=false;
 boolean mousePushed=false;
 boolean keyPushed=false;
+boolean mouseDragged=false;
 long fscmDMillisGotTS=0;
 long fscmDTConnTime=0;
 import processing.serial.*;
@@ -45,6 +46,51 @@ void setupPoints() {
   points.addColumn("Latitude", Table.FLOAT);
   points.addColumn("Longitude", Table.FLOAT);
   points.addColumn("Altitude", Table.FLOAT);
+}
+void fscmDLoadWaypoints() {
+  try {
+    points=loadTable("/waypoints/points.csv", "header");
+  }
+  catch(Exception e) {
+    println("error loading waypoints");
+  }
+}
+void fscmDSaveWaypoints() {
+  saveTable(points, "/waypoints/points.csv");
+}
+void fscmDWaypointsSend() {
+  if (sendWPoints==false&&fscmDJustGotTS) {
+    pointsWI=0;
+    SWPB.msg="send points";
+  }
+  if (sendWPoints) {
+    if (fscmDJustGotTS) {
+      if (byte(points.getRowCount())<=25) {//size of fscmF waypoints array
+        pointsWNum=byte(points.getRowCount());
+        if (pointsWI<100) {
+          pointsWI=100;
+        }
+        if (pointsWI>=100+points.getRowCount()) {
+          sendWPoints=false;
+          pointsWI=0;
+        } else {
+          SWPB.msg=str(pointsWI-99)+"/"+nf(pointsWNum);
+          if (pointsWI>=100&&pointsWI<100+points.getRowCount()) {          
+            pointsWI++;
+            pointsWLat=points.getFloat(pointsWI-101, "Latitude");
+            pointsWLon=points.getFloat(pointsWI-101, "Longitude");
+            pointsWAlt=points.getFloat(pointsWI-101, "Altitude");
+          }
+        }
+      } else {
+        SWPB.msg="overflow";
+        sendWPoints=false;
+      }
+    }
+  }
+  if (SWPB.display(sendWPoints)) {
+    sendWPoints=true;
+  }
 }
 void runTelog() {
   if (telogging&&!wastelogging) {
@@ -175,7 +221,7 @@ class fscmdMapStatus {
     strokeWeight(0);
     fill(30);
     rect(x, y, w, h);
-    if (pointClicked>0) {
+    if (pointClicked>=0&&pointClicked<=255) {
       fill(255);
       textSize(10);
       points.setFloat(pointClicked, "Latitude", textBox(1, pointClicked, points.getFloat(pointClicked, "Latitude"), 3, y+10, w-6));
@@ -188,7 +234,7 @@ class fscmdMapStatus {
       stroke(255);
       rect(x+5, y+h-3, w-10, -15);
       fill(255);
-      text("right click to delete point", x+5, y+h-10);
+      text("right click here to delete point", x+5, y+h-10);
       if (mouseX>x+5&&mouseY>y+h-3-15&&mouseX<x+w-10&&mouseY<y+h-3&&mousePushed&&mouseButton==RIGHT) {
         mousePushed=false;
         points.removeRow(pointClicked);
@@ -245,6 +291,7 @@ class fscmdMapDisplay {
   float maxDispFlyDistMeters;
   UnfoldingMap map;
   PGraphics mpg;
+  EventDispatcher eventDispatcher;
   fscmdMapDisplay(int X, int Y, int S, float MaxDispFlyDistMeters) {
     x=X;
     y=Y;
@@ -253,7 +300,11 @@ class fscmdMapDisplay {
     map = new UnfoldingMap(fscmD.this, x, y, s, s, new Microsoft.HybridProvider());
     map.setZoomRange(4, 18);
     map.zoomAndPanTo(10, new Location(fscmHomeLat, fscmHomeLon));
-    MapUtils.createDefaultEventDispatcher(fscmD.this, map);
+    eventDispatcher = new EventDispatcher();
+    MouseHandler mouseHandler = new MouseHandler(fscmD.this, map);
+    eventDispatcher.addBroadcaster(mouseHandler);
+    eventDispatcher.register(map, PanMapEvent.TYPE_PAN, map.getId());
+    eventDispatcher.register(map, ZoomMapEvent.TYPE_ZOOM, map.getId());
     mpg=createGraphics(s, s, P2D);
   }
   void display(float FscmFGpsLat, float FscmFGpsLon, float DHomeHeading, float DDOFHeading, float DGPSHeading, float FscmHomeLat, float FscmHomeLon) {
@@ -266,10 +317,16 @@ class fscmdMapDisplay {
       zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(FscmHomeLat, FscmHomeLon), 0, maxDispFlyDistMeters/1110.00)));
       map.zoomAndPanToFit(zoomloclist);
       map.rotateTo(-radians(DHomeHeading));
-      println(fscmHomeLat);
       while (!map.allTilesLoaded()) {
         map.draw();
       }
+    }
+    if (pointClicked>=0&&pointClicked<=255) {
+      eventDispatcher.unregister(map, PanMapEvent.TYPE_PAN, map.getId());
+      eventDispatcher.unregister(map, ZoomMapEvent.TYPE_ZOOM, map.getId());
+    } else {
+      eventDispatcher.register(map, PanMapEvent.TYPE_PAN, map.getId());
+      eventDispatcher.register(map, ZoomMapEvent.TYPE_ZOOM, map.getId());
     }
     map.draw();
     strokeWeight(1);
@@ -287,10 +344,16 @@ class fscmdMapDisplay {
       points.setFloat(points.getRowCount()-1, "Latitude", ploc.getLat());
       points.setFloat(points.getRowCount()-1, "Longitude", ploc.getLon());
     }
+    if (mousePressed&&mouseDragged&&!mousePushed&&mouseX>x&&mouseX<x+s&&mouseY>y&&mouseY<y+s&&pointClicked==pointHovered&&pointClicked>=0&&pointClicked<=255) {
+      Location ploc= map.getLocationFromScreenPosition(mouseX, mouseY);
+      points.setInt(pointClicked, "ID", pointClicked);
+      points.setFloat(pointClicked, "Latitude", ploc.getLat());
+      points.setFloat(pointClicked, "Longitude", ploc.getLon());
+    }
     mpg.beginDraw();
     mpg.clear();
-    for (int i=1; i<points.getRowCount(); i++) {
-      marker(i, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-x, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-y, colorHSB(map(i, 1, points.getRowCount(), 0, 255), 100, 255), nf(points.getInt(i, "ID")), nf(points.getFloat(i, "Altitude"), 0, 1), nf((540-DDOFHeading+degrees((float)GeoUtils.getAngleBetween(new Location(FscmFGpsLat, FscmFGpsLon), new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))))%360-180, 0, 2), str((int)(1000.0000*GeoUtils.getDistance(FscmFGpsLat, FscmFGpsLon, points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))));
+    for (int i=0; i<points.getRowCount(); i++) {
+      marker(i, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-x, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-y, colorHSB(map(i, 0, points.getRowCount(), 0, 255), 100, 255), nf(points.getInt(i, "ID")), nf(points.getFloat(i, "Altitude"), 0, 1), nf((540-DDOFHeading+degrees((float)GeoUtils.getAngleBetween(new Location(FscmFGpsLat, FscmFGpsLon), new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))))%360-180, 0, 2), str((int)(1000.0000*GeoUtils.getDistance(FscmFGpsLat, FscmFGpsLon, points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))));
     }
     if (clickpoint==false&&mousePushed&&mouseX>x&&mouseX<x+s&&mouseY>y&&mouseY<y+s) {
       pointClicked=-1;
@@ -300,12 +363,20 @@ class fscmdMapDisplay {
       pointHovered=-1;
     }
     hoverpoint=false;
-    marker(0, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y, color(255), "home", "0", nf((720-DDOFHeading+fscmFHeadFmHome)%360-180, 0, 3), nf(fscmFDistMeters));
+    marker(256, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).x-x, map.getScreenPosition(new Location(FscmHomeLat, FscmHomeLon)).y-y, color(255), "home", "0", nf((720-DDOFHeading+fscmFHeadFmHome)%360-180, 0, 3), nf(fscmFDistMeters));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters/4, color(0, 200, 0));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters/2, color(200, 200, 0));
     circleLocRDm(new Location(FscmHomeLat, FscmHomeLon), maxDispFlyDistMeters, color(200, 0, 0));
     mpg.pushMatrix(); 
     mpg.translate(map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).x-x, map.getScreenPosition(new Location(FscmFGpsLat, FscmFGpsLon)).y-y);
+    mpg.pushMatrix();
+    mpg.rotate(3*PI/2-radians(DHomeHeading)); 
+    if (fscmFWPI>0) {
+      mpg.stroke(255, 90, 255);
+      mpg.strokeWeight(2);
+      mpg.line(0, 0, cos(radians(fscmFWH))*getDistance(new Location(FscmFGpsLat, FscmFGpsLon), fscmFWD), sin(radians(fscmFWH))*getDistance(new Location(FscmFGpsLat, FscmFGpsLon), fscmFWD));
+    }
+    mpg.popMatrix();
     mpg.stroke(100, 255, 100);
     mpg.pushMatrix();
     mpg.strokeWeight(1);
@@ -402,29 +473,36 @@ color colorHSB(float H, float S, float B) {
 class fscmdButton {
   int x;
   int y;
-  int s;
+  int w;
+  int h;
   color c;
   boolean l;
   String msg;
   boolean t=false;
   boolean lp=false;
-  fscmdButton(int X, int Y, int S, color C, boolean L, String MSG) {
+  boolean jp=false;
+  fscmdButton(int X, int Y, int W, int H, color C, boolean L, String MSG) {
     x=X;
     y=Y;
-    s=S;
+    w=W;
+    h=H;
     c=C;
     l=L;
     msg=MSG;
   }
   boolean display(boolean v) {
     t=v;
+    pushStyle();
     strokeWeight(4);
     stroke(c);
-    if (mouseX>x&&mouseX<x+s&&mouseY>y&&mouseY<y+s&&mousePressed) {
+    textLeading(15);
+    jp=false;
+    if (mouseX>x&&mouseX<x+w&&mouseY>y&&mouseY<y+h&&mousePressed) {
       stroke(red(c)/2, green(c)/2, blue(c));
       if (lp==false) {
         if (l) {
           t=!t;
+          jp=true;
         } else {
           t=true;
         }
@@ -441,10 +519,11 @@ class fscmdButton {
     } else {
       fill(0);
     }
-    rect(x, y, s, s);
+    rect(x, y, w, h);
     textSize(14);
     fill(155);
-    text(msg, x, y+s/6, s, s);
+    text(msg, x, y, w, h);
+    popStyle();
     return t;
   }
 }
@@ -479,6 +558,10 @@ void fscmdSendDataFscmTIn(int d) {
   fscmTS.write(str(d));
   fscmTS.write(",");
 }
+void fscmdSendDataFscmTBy(byte d) {
+  fscmTS.write(str(d));
+  fscmTS.write(",");
+}
 void fscmdSendDataFscmTFl(float d) {
   fscmTS.write(str(d));
   fscmTS.write(",");
@@ -506,6 +589,10 @@ int fscmdParseFscmTIn() {
   fscmdTSi++;
   return int(fscmdTSInfo[fscmdTSi]);
 }
+byte fscmdParseFscmTBy() {
+  fscmdTSi++;
+  return byte(int(fscmdTSInfo[fscmdTSi]));
+}
 float fscmdParseFscmTFl() {
   fscmdTSi++;
   return float(fscmdTSInfo[fscmdTSi]);
@@ -521,6 +608,7 @@ boolean fscmdParseFscmTBl() {
 float[] fscmdQuaternionToEuler(float qx, float qy, float qz, float qw) {
   float[] eul=new float[3];
   eul[0] = 90-degrees(atan2(2.0*(qx*qy+qz*qw), (qx*qx-qy*qy-qz*qz+qw*qw)));
+  eul[0]+=MAGNETIC_VARIATION;
   if (eul[0]<0) {
     eul[0]+=360;
   }
@@ -672,7 +760,7 @@ class fscmdOrientationDisplay {
 
   //////////internal vars
   int stgiRes=2500; 
-  float landRat=2; 
+  float landRat=3; 
 
   //////////updated vars
   float oriqw=1; 
@@ -743,7 +831,7 @@ class fscmdOrientationDisplay {
     sTxLM.endDraw();
     map = new UnfoldingMap(fscmD.this, width+10, 0, landRat*maxDistMeters*2, landRat*maxDistMeters*2, new Microsoft.HybridProvider());
     sTxL.beginDraw();
-    sTxL.background(0, 150, 0); 
+    sTxL.background(0, 150, 0);
     sTxL.stroke(150);
     sTxL.strokeWeight(1);
     for (int i=0; i<int(2*landRat*maxDistMeters); i+=landRat*10) {
@@ -810,7 +898,8 @@ class fscmdOrientationDisplay {
     sTw.pushMatrix(); 
     sTw.translate(size/2, size/2, (size/2.0) / tan(PI*30.0 / 180.0)); 
     float[] rEs=fscmdoritoAxisAngle(); 
-    sTw.rotateY(radians(180)); 
+    sTw.rotateY(radians(180));    
+    sTw.rotateY(radians(MAGNETIC_VARIATION));
     sTw.rotate(rEs[0], rEs[2], rEs[3], rEs[1]);
     sTw.shape(sphere); 
     sTw.noStroke(); 
@@ -828,22 +917,23 @@ class fscmdOrientationDisplay {
     sTx.background(255); 
     sTx.pushMatrix(); 
     sTx.translate(size/2, size/2, (size/2.0) / tan(PI*30.0 / 180.0)); 
-    sTx.rotateY(radians(180)); 
-    sTx.rotate(rEs[0], rEs[2], rEs[3], rEs[1]);
+    sTx.rotateY(radians(180));
+    sTx.rotate(rEs[0], rEs[2], rEs[3], rEs[1]);    
+    sTx.rotateY(radians(MAGNETIC_VARIATION));
     sTx.pushMatrix(); 
     sTx.translate(-cos(-radians(dheadingfromhome))*ddistmeters*landRat, cgaltitude*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat);
-    sTx.rotateX(radians(450)); 
+    sTx.rotateX(radians(450));
     sTx.rotateZ(PI/2);
     sTx.image(sTxL, -landRat*maxDistMeters, -landRat*maxDistMeters); 
     sTx.rotateZ(-PI/2);
-    sTx.fill(255, 182, 0); 
+    sTx.fill(255, 182, 0, constrain(map(ddistmeters, 0, 15, 30, 255), 30, 255)); 
     sTx.rotate(radians(dhomeheading)); 
     sTx.strokeWeight(1); 
-    sTx.stroke(0); 
+    sTx.stroke(0);
     sTx.box(landRat*maxDistMeters/500); 
     sTx.translate(landRat*maxDistMeters/600, 0, landRat*maxDistMeters/1200);
     sTx.noStroke(); 
-    sTx.fill(0, 5, 255); 
+    sTx.fill(0, 5, 255, constrain(map(ddistmeters, 0, 15, 30, 255), 30, 255)); 
     sTx.sphere(landRat*maxDistMeters/750); 
     sTx.popMatrix(); 
     sTx.translate(0, cgaltitude*landRat, 0);
@@ -856,15 +946,16 @@ class fscmdOrientationDisplay {
     sTx.stroke(0, 50, 0); 
     sTx.line(0, 0, -cos(radians(-dheadingfromhome))*maxDistMeters*landRat*12, sin(radians(-dheadingfromhome))*maxDistMeters*landRat*12);
     sTx.pushMatrix();
-    sTx.scale(landRat);
+    sTx.translate(-cos(-radians(dheadingfromhome))*ddistmeters*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat, 0);
     sTx.rotateZ(PI/2);
-    for (int i=1; i<points.getRowCount(); i++) {
+
+    for (int i=0; i<points.getRowCount(); i++) {
       sTx.pushMatrix();
       sTx.translate((map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-width-10-landRat*maxDistMeters), (map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-landRat*maxDistMeters), landRat*points.getFloat(i, "Altitude"));
       sTx.noStroke();
       sTx.colorMode(HSB);
-      sTx.fill(map(i, 1, points.getRowCount(), 0, 255), 255, 100);
-      sTx.sphere(3);
+      sTx.fill(map(i, 0, points.getRowCount(), 0, 255), 255, 100, 128);
+      sTx.sphere(WAYPOINT_CLOSE_ENOUGH_DIST*landRat);
       sTx.colorMode(RGB);
       sTx.popMatrix();
     }
@@ -974,7 +1065,7 @@ class fscmdOrientationDisplay {
 //    popMatrix();
 //  }
 //}
-class Slider {
+class fscmdSlider {
   float x;
   float y;
   float w;
@@ -986,7 +1077,7 @@ class Slider {
   boolean m=false;
   boolean n=false;
   String valStr="";
-  Slider(float X, float Y, float W, color C, String T, float VAL, float MIN, float MAX) {
+  fscmdSlider(float X, float Y, float W, color C, String T, float VAL, float MIN, float MAX) {
     x=X;
     y=Y;
     w=W;
@@ -996,18 +1087,18 @@ class Slider {
     min=MIN;
     max=MAX;
   }
-  float run(float V) {
+  float display(float V) {
     val=V;
     noStroke();
     fill(red(c)/1.5, green(c)/1.5, blue(c)/1.5);
     rect(x-5, y-2, w+10, 4);
-    textSize(12);
+    textSize(13);
     fill(c);
     text(t, x+w+7, y+3);
     if (!n) {
-      text((nf(val, 3, 6)), x-100, y+3);
+      text((nf(val, 2, 4)), x-70, y+3);
     }
-    if (mouseX>=x-100&&mouseX<=x-10&&mouseY<=y+3&&mouseY>=y-10&&mousePushed) {
+    if (mouseX>=x-73&&mouseX<=x-10&&mouseY<=y+1&&mouseY>=y-6&&mousePushed) {
       n=true;
       valStr="";
     } else if (n==true&&(mousePushed||(keyPressed&&key==ENTER))) {
@@ -1017,12 +1108,12 @@ class Slider {
       }
     }
     if (n) {
-      text(valStr, x-100, y+3);
+      text(valStr, x-70, y+3);
       stroke(red(c)/2, green(c)/2, blue(c)/2);
       strokeWeight(1);
       noFill();
-      rect(x-103, y+4, 102, -14);
-      if (((key==45||key ==46||(key>=48&&key<=57)) && (key != CODED)&&keyPushed&&textWidth(valStr)<98)) {
+      rect(x-70, y+4, 65, -12);
+      if (((key==45||key ==46||(key>=48&&key<=57)) && (key != CODED)&&keyPushed&&textWidth(valStr)<60)) {
         valStr+=key;
       }
       if (keyPushed&&key==BACKSPACE&&valStr.length()>0) {
@@ -1032,7 +1123,7 @@ class Slider {
     noStroke();
     fill(255);
     if (mousePushed) {
-      if ((mouseX>=x-5&&mouseX<=x+w+5&&mouseY>=y-5&&mouseY<=y+5)) {
+      if ((mouseX>=x-5&&mouseX<=x+w+5&&mouseY>=y-4&&mouseY<=y+4)) {
         m=true;
       } else {
         m=false;
@@ -1045,7 +1136,7 @@ class Slider {
       val=constrain(map(mouseX-x, 0, w, min, max), min, max);
       fill(100);
     }
-    rect(x+-5+constrain(map(val, min, max, 0, w), 0, w), y-5, 10, 10);
+    rect(x-5+constrain(map(val, min, max, 0, w), 0, w), y-5, 10, 10);
     return val;
   }
 }
@@ -1054,4 +1145,7 @@ void mousePressed() {
 }
 void keyPressed() {
   keyPushed=true;
+}
+void mouseDragged(){
+  mouseDragged=true;
 }

@@ -13,10 +13,19 @@ fscmdCoBarGraphDisplay TRANSRSSI;
 fscmdCoBarGraphDisplay TBATCGD;
 fscmdButton BSH;
 fscmdButton TLB;
+fscmdButton SWPB;
+fscmdButton SPB;
+fscmdButton LPB;
 fscmdMapStatus MS;
+fscmdSlider WPCEDS;
+fscmdSlider WAS;
+fscmdButton SSB;
+fscmdButton LSB;
 //////////////////constants to pass in/////////////////////////////////////////////////////
 float maxDispFlyDistMeters=1000;
 float WARNINGALT=0;
+float WAYPOINT_CLOSE_ENOUGH_DIST=10.0;
+float MAGNETIC_VARIATION=15.0;
 //////////////////recieved data////////////////////////////////////////////////////////////
 ////////////////////////////////recieve
 boolean fscmHomeSet=false;
@@ -54,6 +63,10 @@ boolean fscmTETVal=false;
 int fscmFConnTime=0;
 float fscmCPitch=0.000;
 float fscmCRoll=0.000;
+byte fscmFWPI=0;
+float fscmFWH=0.000;
+float fscmFWD=0.000;
+float fscmFWA=0.000;
 //////////////////////////////setsometimes
 float fscmHomeHeading = 0.000;
 float fscmHomeLat = 0.00000;
@@ -65,11 +78,17 @@ int warningID=1;
 long lastwarnedbattery=0;
 long lastWarned=0;
 boolean altwarningsilenced=false;
+boolean sendWPoints=false;
 ///////////////////////////values to send
+byte pointsWNum=0;
+byte pointsWI=0;
+float pointsWLon=0.00;
+float pointsWLat=0.00;
+float pointsWAlt=0.00;
 ////////////////////////////////////////////////////////////////////////////////////
 void setup() {
   noSmooth();
-  frameRate(10);
+  frameRate(8);
   size(1350, 700, P2D);//P2D is important
   background(0);
   stroke(255);
@@ -87,17 +106,28 @@ void setup() {
   MBGBOM=new fscmdMiBarGraphDisplay(120, 0, 35, 3, "BNO055 mag status");
   PWG=new fscmdPowerGraphDisplay(375, 0, 272, 100, 3.0, 4.2, 3000);
   PWRCBG=new fscmdCoBarGraphDisplay(PWG.posx-51, PWG.posy, PWG.sizey, 50, PWG.minval, PWG.maxval, 3.3, "BAT V");
-  FSCMDRSSI=new fscmdCoBarGraphDisplay(160, 2, 50, 50, -100, -15, -80, "FSCM");
-  TRANSRSSI=new fscmdCoBarGraphDisplay(210, 2, 50, 50, -100, -15, -80, "Trans");
+  FSCMDRSSI=new fscmdCoBarGraphDisplay(160, 2, 50, 50, -110, -35, -95, "FSCM");
+  TRANSRSSI=new fscmdCoBarGraphDisplay(210, 2, 50, 50, -110, -35, -95, "Trans");
   //  TBATCGD=new fscmdCoBarGraphDisplay(370, 0, 80, 3.3, 6, 3.5, "T Bat");
-  BSH=new fscmdButton(267, 5, 45, color(0, 150, 0), true, "set home");
-  TLB=new fscmdButton(267, 50, 45, color(200, 150, 0), true, "log tel");
+  BSH=new fscmdButton(263, 2, 59, 49, color(0, 150, 0), true, "set home");
+  TLB=new fscmdButton(277, 55, 45, 44, color(200, 150, 0), true, "logtel");
+  SWPB=new fscmdButton(230, 55, 45, 44, color(255, 0, 255), true, "send points");
+  SPB=new fscmdButton(173, 55, 55, 20, color(#FF00B7), true, "saveP");
+  LPB=new fscmdButton(173, 79, 55, 20, color(#D400FF), true, "loadP");
+  SSB=new fscmdButton(173, 103, 55, 20, color(#5AFF03), true, " sv set");
+  LSB=new fscmdButton(173, 127, 55, 20, color(#03FF72), true, " ld set");
+  WPCEDS=new fscmdSlider(243, 160, 20, color(255, 0, 255), "wpce", WAYPOINT_CLOSE_ENOUGH_DIST, 0, 30); //  fscmdSlider(float X, float Y, float W, color C, String T, float VAL, float MIN, float MAX) 
+  WAS=new fscmdSlider(243, 172, 20, color(100, 20, 20), "wrnA", WARNINGALT, -2, 10);
   fscmdSetupFscmTComms();//nothing needs to be called in draw()
   s.write("f s c m starting,#");
 }
 void draw() {
+  noStroke();
+  fill(15);
+  rect(170, 101, 480, 124);
   fscmFEul=fscmdQuaternionToEuler(fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFOriQuatW);
   setHome=BSH.display(setHome);
+  fscmDWaypointsSend();
   wastelogging=telogging;
   if (telogging&&wastelogging) {
     TLB.msg="rec...     "+telog.getRowCount();
@@ -105,6 +135,32 @@ void draw() {
     TLB.msg="log tel";
   }
   telogging=TLB.display(telogging);
+  SPB.display(false);
+  LPB.display(false);
+  if (SPB.jp) {
+    fscmDSaveWaypoints();
+  }
+  if (LPB.jp) {
+    fscmDLoadWaypoints();
+  }
+  SSB.display(false);
+  LSB.display(false);
+  if (SSB.jp) {
+    String setfl[]=new String[10];
+    setfl[1]=str(WARNINGALT);
+    setfl[2]=str(WAYPOINT_CLOSE_ENOUGH_DIST);
+    saveStrings("settings/settings.txt", setfl);
+  }
+  if (LSB.jp||frameCount==1) {
+    try {
+      String setfl[]=loadStrings("settings/settings.txt");
+      WARNINGALT=float(setfl[1]);
+      WAYPOINT_CLOSE_ENOUGH_DIST=float(setfl[2]);
+    }
+    catch(Exception e) {
+      println("error loading settings");
+    }
+  }
   fscmdHomeSet();
   runWarnings();
   //HDD.display(fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters, fscmFEul[0], fscmFGpsHeading); //float DHomeHeading, float DHeadingFromHome, float DDistMeters, float DDOFHeading, float DGPSHeading
@@ -137,7 +193,11 @@ void draw() {
     "fscmC Pitch", 
     "fscmC Roll", 
     "fscmF Conn Time", 
-    "fscmT Conn Time"
+    "fscmT Conn Time", 
+    "fscmFWPI", 
+    "fscmFWH", 
+    "fscmFWD", 
+    "fscmFWA", 
   };
   float[] dispVal={
     int(fscmHomeSet), 
@@ -167,7 +227,11 @@ void draw() {
     fscmCPitch, 
     fscmCRoll, 
     fscmFConnTime, 
-    fscmDTConnTime
+    fscmDTConnTime, 
+    fscmFWPI, 
+    fscmFWH, 
+    fscmFWD, 
+    fscmFWA
   };
   fscmdDisplayInfo(dispMsg, dispVal, 0, 250, 170, 450, 10);
   MBGBOO.display(fscmFOriSystemCal);
@@ -181,11 +245,14 @@ void draw() {
   PWRCBG.display(fscmFBatVolt);
   FSCMDRSSI.display(fscmFSigStrengthOfTran);
   TRANSRSSI.display(fscmTSigStrengthFromF);
+  WARNINGALT=WAS.display(WARNINGALT);
+  WAYPOINT_CLOSE_ENOUGH_DIST=WPCEDS.display(WAYPOINT_CLOSE_ENOUGH_DIST);
   runTelog();
   mousePushed=false;
   keyPushed=false;
   homeSet=false;
   fscmDJustGotTS=false;
+  mouseDragged=false;
 }
 void fscmdDataToParseFromFscmT() {
   fscmHomeSet=fscmdParseFscmTBl();
@@ -223,10 +290,19 @@ void fscmdDataToParseFromFscmT() {
   fscmFConnTime=fscmdParseFscmTIn();
   fscmCPitch=fscmdParseFscmTFl();
   fscmCRoll=fscmdParseFscmTFl();
+  fscmFWPI=fscmdParseFscmTBy();
+  fscmFWH=fscmdParseFscmTFl();
+  fscmFWD=fscmdParseFscmTFl();
 }
 void fscmdDataToSendToFscmT() {
   fscmdSendDataFscmTBl(setHome);
   fscmdSendDataFscmTBl(numWarnings>0);
+  fscmdSendDataFscmTBy(pointsWNum);
+  fscmdSendDataFscmTBy(pointsWI);
+  fscmdSendDataFscmTFl(pointsWLon);
+  fscmdSendDataFscmTFl(pointsWLat);
+  fscmdSendDataFscmTFl(pointsWAlt);
+  fscmdSendDataFscmTFl(WAYPOINT_CLOSE_ENOUGH_DIST);
 }
 void runWarnings() {
   numWarnings=0;

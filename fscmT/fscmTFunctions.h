@@ -60,6 +60,9 @@ byte fscmFAltArrayI = 0;
 int fscmTSigStrengthFromF = 10;
 float fscmCPitch = 0.000;
 float fscmCRoll = 0.000;
+float fscmFWH = 0.00;
+float fscmFWD = 0.00;
+float fscmFWA = 0.00;
 //////////////////////////////////////////////recieve from fscmF
 boolean fscmHomeSet = false;
 uint8_t fscmFOriSystemCal, fscmFOriGyroCal, fscmFOriAccelCal, fscmFOriMagCal = 0;
@@ -74,6 +77,13 @@ float fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFOriQuatW = 0.0000;
 float fscmFGAlt = 1;
 float fscmFBatVolt = 1;
 int fscmFSigStrengthOfTran = 10;
+byte fscmFWPI = 0;
 /////////////////////////////recieve from fscmD
 boolean fscmRequestHomeSet = false;
 boolean fscmDWarnings = false;
+byte pointsWNum = 0;
+byte pointsWI = 0;
+float pointsWLon = 0.00;
+float pointsWLat = 0.00;
+float pointsWAlt = 0.00;
+float WaypointCloseEnoughDist = 10.00;

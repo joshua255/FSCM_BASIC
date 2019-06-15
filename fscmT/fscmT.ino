@@ -52,6 +52,10 @@ void fscmTFDataToParseFromFscmF() {
   fscmFSigStrengthOfTran = fscmTFParseDataFscmFIn();
   fscmCPitch = fscmTFParseDataFscmFFl();
   fscmCRoll = fscmTFParseDataFscmFFl();
+  fscmFWPI = fscmTFParseDataFscmFBy();
+  fscmFWH = fscmTFParseDataFscmFFl();
+  fscmFWD = fscmTFParseDataFscmFFl();
+  fscmFWA = fscmTFParseDataFscmFFl();
 }
 void fscmTFDataToSendToFscmF() {
   fscmTFSendDataFscmFBl(fscmRequestHomeSet);
@@ -64,6 +68,12 @@ void fscmTFDataToSendToFscmF() {
   fscmTFSendDataFscmFBy(fscmTRKBVal);
   fscmTFSendDataFscmFBy(fscmTLTVal);
   fscmTFSendDataFscmFBl(fscmTRTVal);
+  fscmTFSendDataFscmFBy(pointsWNum);
+  fscmTFSendDataFscmFBy(pointsWI);
+  fscmTFSendDataFscmFFl(pointsWLon);
+  fscmTFSendDataFscmFFl(pointsWLat);
+  fscmTFSendDataFscmFFl(pointsWAlt);
+  fscmTFSendDataFscmFFl(WaypointCloseEnoughDist);
 }
 void fscmTFDataToSendToFscmD() {
   fscmTFSendDataFscmDBl(fscmHomeSet);
@@ -101,8 +111,18 @@ void fscmTFDataToSendToFscmD() {
   fscmTFSendDataFscmDIn(int(millis() - fscmTLastMillisRecvFscmF));
   fscmTFSendDataFscmDFl(fscmCPitch);
   fscmTFSendDataFscmDFl(fscmCRoll);
+  fscmTFSendDataFscmDBy(fscmFWPI);
+  fscmTFSendDataFscmDFl(fscmFWH);
+  fscmTFSendDataFscmDFl(fscmFWD);
+  fscmTFSendDataFscmDFl(fscmFWA);
 }
 void fscmTFDataToParseFromFscmD() {
   fscmRequestHomeSet = fscmTFParseDataFscmDBl();
   fscmDWarnings = fscmTFParseDataFscmDBl();
+  pointsWNum = fscmTFParseDataFscmDBy();
+  pointsWI = fscmTFParseDataFscmDBy();
+  pointsWLon = fscmTFParseDataFscmDFl();
+  pointsWLat = fscmTFParseDataFscmDFl();
+  pointsWAlt = fscmTFParseDataFscmDFl();
+  WaypointCloseEnoughDist = fscmTFParseDataFscmDFl();
 }

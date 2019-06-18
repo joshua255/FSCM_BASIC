@@ -1,2 +1,2 @@
-# FSCM_BASIC
-framework for FSCM code
+# FSCM_QA
+code for Quadcopter A based on FSCM_BASIC

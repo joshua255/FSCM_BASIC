@@ -32,7 +32,6 @@ int fscmdTSi=0;
 boolean homeSet=false;
 String[] fscmdTSInfo;
 String fscmdTSIn;
-boolean fscmdTSGood=false;
 boolean mousePushed=false;
 boolean keyPushed=false;
 boolean mouseDragged=false;
@@ -49,7 +48,9 @@ void setupPoints() {
 }
 void fscmDLoadWaypoints() {
   try {
-    points=loadTable("/waypoints/points.csv", "header");
+    if (loadTable("/waypoints/points.csv", "header")!=null) {
+      points=loadTable("/waypoints/points.csv", "header");
+    }
   }
   catch(Exception e) {
     println("error loading waypoints");
@@ -65,6 +66,7 @@ void fscmDWaypointsSend() {
   }
   if (sendWPoints) {
     if (fscmDJustGotTS) {
+      println("sending");
       if (byte(points.getRowCount())<=25) {//size of fscmF waypoints array
         pointsWNum=byte(points.getRowCount());
         if (pointsWI<100) {
@@ -528,24 +530,17 @@ class fscmdButton {
   }
 }
 void serialEvent(Serial fscmTS) {
-  char readin=fscmTS.readChar();
-  fscmdTSIn+=readin;
-  if (readin=='<') {
-    fscmdTSIn="";
-    fscmdTSGood=true;
-  }
-  if (readin=='>'&&fscmdTSGood) {
-    fscmdTSGood=false;
-    fscmdTSInfo=split(fscmdTSIn, ',');
-    fscmdTSi=0;
-    fscmdDataToParseFromFscmT();
-    fscmTS.write("<");
-    fscmdDataToSendToFscmT();
-    fscmTS.write(">");
-    fscmDJustGotTS=true;
-    fscmDTConnTime=millis()-fscmDMillisGotTS;
-    fscmDMillisGotTS=millis();
-  }
+  fscmDTConnTime=millis()-fscmDMillisGotTS;
+  fscmDMillisGotTS=millis();
+  fscmDJustGotTS=true;
+  fscmdTSIn=fscmTS.readString();
+  fscmdTSInfo=split(fscmdTSIn, ',');
+  fscmdTSIn="";
+  fscmdTSi=0;
+  fscmdDataToParseFromFscmT();
+  fscmTS.write("<");
+  fscmdDataToSendToFscmT();
+  fscmTS.write(">");
 }
 void fscmdSendDataFscmTBl(boolean d) {
   if (d) {
@@ -569,6 +564,7 @@ void fscmdSendDataFscmTFl(float d) {
 void fscmdSetupFscmTComms() {
   try {
     fscmTS=new Serial(this, Serial.list()[0], 2000000);
+    fscmTS.bufferUntil('>');
   }
   catch(Exception e) {
     println("no transmitter, stopping program!");
@@ -780,6 +776,7 @@ class fscmdOrientationDisplay {
   PGraphics sTx; 
   PGraphics sTxL; //ground
   PGraphics sTxLM; //circle mask on ground
+  boolean mapped=false;
   UnfoldingMap map;
   fscmdOrientationDisplay(int POSX, int POSY, int SIZE, float MAXDISTMETERS) {
     posx=POSX; 
@@ -869,10 +866,14 @@ class fscmdOrientationDisplay {
       zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(fscmHomeLat, fscmHomeLon), 270, maxDispFlyDistMeters/1110.00)));
       zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(fscmHomeLat, fscmHomeLon), 0, maxDispFlyDistMeters/1110.00)));
       map.zoomAndPanToFit(zoomloclist);
-      while (!map.allTilesLoaded()) {
-        map.draw();
-      }
+      mapped=true;
       map.draw();
+    }
+    if (!map.allTilesLoaded()&&mapped) {
+      map.draw();
+    }
+    if (map.allTilesLoaded()&&mapped) {
+      mapped=false;
       sTxL.beginDraw();
       sTxL.image(map.mapDisplay.getOuterPG().get(), 0, 0, landRat*maxDistMeters*2, landRat*maxDistMeters*2);
       sTxL.stroke(150);
@@ -948,7 +949,6 @@ class fscmdOrientationDisplay {
     sTx.pushMatrix();
     sTx.translate(-cos(-radians(dheadingfromhome))*ddistmeters*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat, 0);
     sTx.rotateZ(PI/2);
-
     for (int i=0; i<points.getRowCount(); i++) {
       sTx.pushMatrix();
       sTx.translate((map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-width-10-landRat*maxDistMeters), (map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-landRat*maxDistMeters), landRat*points.getFloat(i, "Altitude"));
@@ -1146,6 +1146,6 @@ void mousePressed() {
 void keyPressed() {
   keyPushed=true;
 }
-void mouseDragged(){
+void mouseDragged() {
   mouseDragged=true;
 }

@@ -14,7 +14,7 @@ void fscmFFWaypoints() {
       fscmFWD = TinyGPSPlus::distanceBetween(gps.location.lat(), gps.location.lng(), waypoints[0][fscmFWPI - 1], waypoints[1][fscmFWPI - 1]);
       fscmFWH = TinyGPSPlus::courseTo(gps.location.lat(), gps.location.lng(), waypoints[0][fscmFWPI - 1], waypoints[1][fscmFWPI - 1]);
       fscmFWA = waypoints[2][fscmFWPI] - fscmFGAlt;
-      if (fscmFWD < WAYPOINT_CLOSE_ENOUGH_DIST) {
+      if (fscmFWD < WAYPOINT_CLOSE_ENOUGH_DIST && abs(fscmFWA) < WAYPOINT_CLOSE_ENOUGH_DIST / 2) {
         fscmFWPI++;
         if (fscmFWPI > numWayPoints) {
           fscmFWPI = 0;
@@ -130,7 +130,6 @@ void fscmFFRadio() {
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
   uint8_t data[fscmFRI];
-
   rf95.waitPacketSent();
   gotFscmTMsgLast = false;
   if (rf95.recv(buf, &len)) {

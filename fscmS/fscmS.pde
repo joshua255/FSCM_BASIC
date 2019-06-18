@@ -30,7 +30,9 @@ void draw() {
     c = s.available();
     if (c != null) {
       inputS = c.readStringUntil('#');
-      c.clear();
+      while (c.available()>0) {
+        c.read();
+      }
       inputs = inputS.split(",");
       input=inputs[0];
       inputS="";

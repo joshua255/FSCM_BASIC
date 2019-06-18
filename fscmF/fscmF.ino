@@ -20,7 +20,7 @@ void loop() {
   if (millis() - fscmFLastRecvMillis < SHUTOFF_AFTER_MILLIS) {//connected
     digitalWrite(13, fscmFEnabled);
   } else {//signal loss
-    if (millis() % 300 < 150) {
+    if (millis() % 500 < 200) {
       digitalWrite(13, HIGH);
     } else {
       digitalWrite(13, LOW);

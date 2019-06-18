@@ -8,8 +8,8 @@ void setup() {
 void loop() {
   fscmTFReadInputs();
   fscmTFSetStatLed(ledTogLightID, CRGB(fscmTETVal * 255, fscmTETVal * 250 + !fscmTETVal * 35, !fscmTETVal * 8 + fscmTETVal * 140));
-  fscmTFFscmFComms();
   fscmTFFscmDComms();
+  fscmTFFscmFComms();
   fscmTFLedDisplay();
 }
 void fscmTFLedDisplay() {
@@ -18,12 +18,12 @@ void fscmTFLedDisplay() {
   fscmTFSetStatLed(ledBatStatTopID, CRGB(constrain(map(fscmFBatVolt * 1000, 3800, 4200, 100, 0), 0, 100), constrain(map(fscmFBatVolt * 1000, 3800, 4200, 0, 100), 0, 100), 0));
   fscmTFSetStatLed(ledBatStatMidID, CRGB(constrain(map(fscmFBatVolt * 1000, 3400, 3800, 100, 0), 0, 100), constrain(map(fscmFBatVolt * 1000, 3400, 3800, 0, 100), 0, 100), 0));
   fscmTFSetStatLed(ledBatStatBotID, CRGB(constrain(map(fscmFBatVolt * 1000, 3000, 3400, 100, 0), 0, 255), constrain(map(fscmFBatVolt * 1000, 3000, 3400, 0, 100), 0, 100), 0));
-  fscmTFSetStatLed(ledStatOneID, CHSV(constrain(map(fscmFSigStrengthOfTran, 0, -100, 255, 0), 0, 255), 255, 255));
-  fscmTFSetStatLed(ledStatTwoID, CHSV(constrain(map(fscmTSigStrengthFromF, 0, -100, 255, 0), 0, 255), 255, 255));
+  fscmTFSetStatLed(ledStatOneID, CHSV(constrain(map(fscmFSigStrengthOfTran, -20, -110, 235, 0), 0, 235), 255, 255));
+  fscmTFSetStatLed(ledStatTwoID, CHSV(constrain(map(fscmTSigStrengthFromF, -20, -110, 235, 0), 0, 235), 255, 255));
   if (fscmTRecvdFscmFNew) {
     fscmTFSetStatLed(ledConnID, CRGB(5, 255, 30));
   } else {
-    if (millis() - fscmTLastMillisTransFscmF > 500) {
+    if (millis() - fscmTLastMillisTransFscmF > 600) {
       fscmTFSetStatLed(ledConnID, CRGB(255, 5, 5));
     } else {
       fscmTFSetStatLed(ledConnID, CRGB(0, 0, 0));

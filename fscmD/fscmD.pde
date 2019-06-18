@@ -88,7 +88,7 @@ float pointsWAlt=0.00;
 ////////////////////////////////////////////////////////////////////////////////////
 void setup() {
   noSmooth();
-  frameRate(8);
+  frameRate(16);
   size(1350, 700, P2D);//P2D is important
   background(0);
   stroke(255);
@@ -198,6 +198,7 @@ void draw() {
     "fscmFWH", 
     "fscmFWD", 
     "fscmFWA", 
+    "etv"
   };
   float[] dispVal={
     int(fscmHomeSet), 
@@ -231,7 +232,8 @@ void draw() {
     fscmFWPI, 
     fscmFWH, 
     fscmFWD, 
-    fscmFWA
+    fscmFWA, 
+    int(fscmTETVal)
   };
   fscmdDisplayInfo(dispMsg, dispVal, 0, 250, 170, 450, 10);
   MBGBOO.display(fscmFOriSystemCal);
@@ -381,9 +383,13 @@ void runWarnings() {
         warningID=-8;
       } else if (fscmTLKBVal>=240&&fscmTLKBVal<256) {
         if (fscmTLBVal||warningID!=-9) {
-          s.write("ori stat"+",#");
+          s.write("waypoint"+",#");
         } else {
-          s.write(nf(int(fscmFOriSystemCal))+",#");
+          if (fscmFWPI>0) {
+            s.write(nf(int((540+fscmFWH-fscmFEul[0])%360-180))+" d "+int(fscmFWD)+" m"+",#");
+          } else {
+            s.write("no point,#");
+          }
         }
         warningID=-9;
       }

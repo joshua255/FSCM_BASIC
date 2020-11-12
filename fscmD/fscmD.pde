@@ -1,5 +1,4 @@
 Client s;
-//fscmdHeadingDistanceDisplay HDD;
 fscmdMapDisplay MD;
 fscmdOrientationDisplay OTD;
 fscmdMiBarGraphDisplay MBGBOO;
@@ -19,11 +18,13 @@ fscmdButton LPB;
 fscmdMapStatus MS;
 fscmdSlider WPCEDS;
 fscmdSlider WAS;
+fscmdSlider WASM;
 fscmdButton SSB;
 fscmdButton LSB;
 //////////////////constants to pass in/////////////////////////////////////////////////////
 float maxDispFlyDistMeters=1000;
 float WARNINGALT=0;
+float ALTITUDE_CEILING=100;
 float WAYPOINT_CLOSE_ENOUGH_DIST=10.0;
 float MAGNETIC_VARIATION=15.0;
 //////////////////recieved data////////////////////////////////////////////////////////////
@@ -33,17 +34,18 @@ int fscmFOriSystemCal=0;
 int fscmFOriGyroCal=0;
 int fscmFOriAccelCal=0;
 int fscmFOriMagCal=0;
+float fscmFGpsLat=44.0000;
 float fscmFGpsLon=-123.0000;
-float fscmFGpsLat=43.0000;
 float fscmFGpsSatStat=0;
 float fscmFGpsSpeed=0.00;
 float fscmFGpsHeading=0.00;
+float fscmFGpsAlt=0.00;
 int fscmFDistMeters=0;
 float fscmFHeadFmHome=0;
 float fscmFOriQuatX=0.000;
 float fscmFOriQuatY=0.000;
 float fscmFOriQuatZ=0.000;
-float fscmFOriQuatW=0.000;
+float fscmFOriQuatW=1.000;
 float fscmFGAlt=0.00;
 float fscmFBatVolt=0.0;
 int fscmFSigStrengthOfTran=10;
@@ -69,12 +71,12 @@ float fscmFWD=0.000;
 float fscmFWA=0.000;
 //////////////////////////////setsometimes
 float fscmHomeHeading = 0.000;
-float fscmHomeLat = 0.00000;
-float fscmHomeLon = 0.00000;
+float fscmHomeLat = 44.00000;
+float fscmHomeLon = -123.00000;
 /////////////////////////////fscmDVars
 boolean setHome=false;
 int numWarnings=1;
-int warningID=1;
+int warningID=0;
 long lastwarnedbattery=0;
 long lastWarned=0;
 boolean altwarningsilenced=false;
@@ -88,7 +90,6 @@ float pointsWAlt=0.00;
 ////////////////////////////////////////////////////////////////////////////////////
 void setup() {
   noSmooth();
-  frameRate(16);
   size(1350, 700, P2D);//P2D is important
   background(0);
   stroke(255);
@@ -98,7 +99,6 @@ void setup() {
   setupPoints();
   MD=new fscmdMapDisplay(173, 225, 475, maxDispFlyDistMeters);
   MS=new fscmdMapStatus(0, 75, 171, 175);
-  // HDD=new fscmdHeadingDistanceDisplay(200, 150, 120, maxDispFlyDistMeters);
   OTD=new fscmdOrientationDisplay(650, 0, 700, maxDispFlyDistMeters);
   MBGBOO=new fscmdMiBarGraphDisplay(0, 0, 50, 3, "orientation status");
   MBGBOA=new fscmdMiBarGraphDisplay(50, 0, 35, 3, "BNO055 accel status");
@@ -117,11 +117,16 @@ void setup() {
   SSB=new fscmdButton(173, 103, 55, 20, color(#5AFF03), true, " sv set");
   LSB=new fscmdButton(173, 127, 55, 20, color(#03FF72), true, " ld set");
   WPCEDS=new fscmdSlider(243, 160, 20, color(255, 0, 255), "wpce", WAYPOINT_CLOSE_ENOUGH_DIST, 0, 30); //  fscmdSlider(float X, float Y, float W, color C, String T, float VAL, float MIN, float MAX) 
-  WAS=new fscmdSlider(243, 172, 20, color(100, 20, 20), "wrnA", WARNINGALT, -2, 10);
+  WAS=new fscmdSlider(243, 172, 20, color(200, 200, 20), "wrnA", WARNINGALT, -2, 10);
+  WASM=new fscmdSlider(243, 184, 20, color(200, 20, 200), "maxA", WARNINGALT, 0, 150);
   fscmdSetupFscmTComms();//nothing needs to be called in draw()
+  frameRate(10);
   s.write("f s c m starting,#");
 }
 void draw() {
+  if (frameCount==1) {
+    OTD.setUp();
+  }
   noStroke();
   fill(15);
   rect(170, 101, 480, 124);
@@ -149,6 +154,7 @@ void draw() {
     String setfl[]=new String[10];
     setfl[1]=str(WARNINGALT);
     setfl[2]=str(WAYPOINT_CLOSE_ENOUGH_DIST);
+    setfl[3]=str(ALTITUDE_CEILING);
     saveStrings("settings/settings.txt", setfl);
   }
   if (LSB.jp||frameCount==1) {
@@ -156,6 +162,7 @@ void draw() {
       String setfl[]=loadStrings("settings/settings.txt");
       WARNINGALT=float(setfl[1]);
       WAYPOINT_CLOSE_ENOUGH_DIST=float(setfl[2]);
+      ALTITUDE_CEILING=float(setfl[3]);
     }
     catch(Exception e) {
       println("error loading settings");
@@ -163,9 +170,8 @@ void draw() {
   }
   fscmdHomeSet();
   runWarnings();
-  //HDD.display(fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters, fscmFEul[0], fscmFGpsHeading); //float DHomeHeading, float DHeadingFromHome, float DDistMeters, float DDOFHeading, float DGPSHeading
   OTD.display(fscmFOriQuatW, fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFGpsHeading, fscmFGAlt, fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters); //float Oriqw, float Oriqx, float Oriqy, float Oriqz, float GpsHeading, float CGAltitude, float DHomeHeading, float DHeadingFromHome, float DDistMeters
-  String[] dispMsg={
+  String[] dispMsg= {
     "home set", 
     "home lat", 
     "home lon", 
@@ -175,12 +181,14 @@ void draw() {
     "gps sat stat", 
     "gps ground speed", 
     "gps heading", 
+    "gps altitude", 
     "heading", 
     "pitch", 
     "roll", 
     "distance", 
     "head from home", 
-    "head to home diff", 
+    "head to home", 
+    "home ori head", 
     "quaternion X", 
     "quaternion Y", 
     "quaternion Z", 
@@ -200,7 +208,7 @@ void draw() {
     "fscmFWA", 
     "etv"
   };
-  float[] dispVal={
+  float[] dispVal= {
     int(fscmHomeSet), 
     fscmHomeLat, 
     fscmHomeLon, 
@@ -210,12 +218,14 @@ void draw() {
     fscmFGpsSatStat, 
     fscmFGpsSpeed, 
     fscmFGpsHeading, 
+    fscmFGpsAlt, 
     fscmFEul[0], 
     fscmFEul[1], 
     fscmFEul[2], 
     fscmFDistMeters, 
     fscmFHeadFmHome, 
     (fscmFHeadFmHome-fscmFEul[0]-180)<=-180?360+(fscmFHeadFmHome-fscmFEul[0]-180):(fscmFHeadFmHome-fscmFEul[0]-180), 
+    (fscmFEul[0]-fscmHomeHeading-180)<=-180?360+(fscmFEul[0]-fscmHomeHeading-180):(fscmFEul[0]-fscmHomeHeading-180), 
     fscmFOriQuatX, 
     fscmFOriQuatY, 
     fscmFOriQuatZ, 
@@ -248,6 +258,7 @@ void draw() {
   FSCMDRSSI.display(fscmFSigStrengthOfTran);
   TRANSRSSI.display(fscmTSigStrengthFromF);
   WARNINGALT=WAS.display(WARNINGALT);
+  ALTITUDE_CEILING=WASM.display(ALTITUDE_CEILING);
   WAYPOINT_CLOSE_ENOUGH_DIST=WPCEDS.display(WAYPOINT_CLOSE_ENOUGH_DIST);
   runTelog();
   mousePushed=false;
@@ -267,6 +278,7 @@ void fscmdDataToParseFromFscmT() {
   fscmFGpsSatStat=fscmdParseFscmTFl();
   fscmFGpsSpeed=fscmdParseFscmTFl();
   fscmFGpsHeading=fscmdParseFscmTFl();
+  fscmFGpsAlt=fscmdParseFscmTFl();
   fscmFDistMeters=fscmdParseFscmTIn();
   fscmFHeadFmHome=fscmdParseFscmTFl();
   fscmFOriQuatX=fscmdParseFscmTFl();
@@ -295,6 +307,7 @@ void fscmdDataToParseFromFscmT() {
   fscmFWPI=fscmdParseFscmTBy();
   fscmFWH=fscmdParseFscmTFl();
   fscmFWD=fscmdParseFscmTFl();
+  fscmFWA=fscmdParseFscmTFl();
 }
 void fscmdDataToSendToFscmT() {
   fscmdSendDataFscmTBl(setHome);
@@ -319,6 +332,9 @@ void runWarnings() {
   if (fscmFConnTime>1000) {
     numWarnings++;
   }
+  if (fscmFGAlt>=ALTITUDE_CEILING) {
+    numWarnings++;
+  }
   if (millis()-lastwarnedbattery>30000||(millis()-lastwarnedbattery>10000&&fscmFBatVolt<3.4)) {
     numWarnings++;
   }
@@ -329,14 +345,14 @@ void runWarnings() {
         if (fscmTLBVal||warningID!=-1) {
           s.write("compass heading"+",#");
         } else {
-          s.write(nf(int(fscmFEul[0]))+",#");
+          s.write(nf(int(fscmFEul[0]), 2)+",#");
         }
         warningID=-1;
       } else if (fscmTLKBVal>=30&&fscmTLKBVal<60) {
         if (fscmTLBVal||warningID!=-2) {
           s.write("g p s heading"+",#");
         } else {
-          s.write(nf(int(fscmFGpsHeading))+",#");
+          s.write(nf(int(fscmFGpsHeading), 2)+",#");
         }
         warningID=-2;
       } else if (fscmTLKBVal>=60&&fscmTLKBVal<90) {
@@ -350,21 +366,21 @@ void runWarnings() {
         if (fscmTLBVal||warningID!=-4) {
           s.write("distance"+",#");
         } else {
-          s.write(nf(fscmFDistMeters)+",#");
+          s.write(nf(fscmFDistMeters, 3)+",#");
         }
         warningID=-4;
       } else if (fscmTLKBVal>=120&&fscmTLKBVal<150) {
         if (fscmTLBVal||warningID!=-5) {
-          s.write("relative heading from home"+",#");
+          s.write("home oriented heading"+",#");
         } else {
-          s.write(nf(int((fscmFHeadFmHome-fscmHomeHeading-180)<=-180?360+(fscmFHeadFmHome-fscmHomeHeading-180):(fscmFHeadFmHome-fscmHomeHeading-180)))+",#");
+          s.write(nf(int((fscmFEul[0]-fscmHomeHeading)<=-180?360+(fscmFEul[0]-fscmHomeHeading):(fscmFEul[0]-fscmHomeHeading)), 3)+",#");
         }
         warningID=-5;
       } else if (fscmTLKBVal>=150&&fscmTLKBVal<180) {
         if (fscmTLBVal||warningID!=-6) {
-          s.write("heading to home diff"+",#");
+          s.write("heading to home"+",#");
         } else {
-          s.write(nf(int((fscmFHeadFmHome-fscmFEul[0]-180)<=-180?360+(fscmFHeadFmHome-fscmFEul[0]-180):(fscmFHeadFmHome-fscmFEul[0]-180)))+",#");
+          s.write(nf(int((fscmFHeadFmHome-fscmFEul[0]-180)<=-180?360+(fscmFHeadFmHome-fscmFEul[0]-180):(fscmFHeadFmHome-fscmFEul[0]-180)), 3)+",#");
         }
         warningID=-6;
       } else if (fscmTLKBVal>=180&&fscmTLKBVal<210) {
@@ -386,7 +402,7 @@ void runWarnings() {
           s.write("waypoint"+",#");
         } else {
           if (fscmFWPI>0) {
-            s.write(nf(int((540+fscmFWH-fscmFEul[0])%360-180))+" d "+int(fscmFWD)+" m"+",#");
+            s.write(nf(int((540+fscmFWH-fscmFEul[0])%360-180), 2)+". "+int(fscmFWD)+",#");
           } else {
             s.write("no point,#");
           }
@@ -396,8 +412,8 @@ void runWarnings() {
       s.clear();
     }
   } else {//auto warnings
-    if ((frameCount%int(frameRate*10)==0||s.available()>0)&&numWarnings>0) {
-      if (warningID>4||warningID<=0) {//change as necessary
+    if ((frameCount%int(frameRate*10+1)==0||s.available()>0)&&numWarnings>0) {
+      if (warningID>5||warningID<=0) {//change as necessary
         warningID=1;
       }
       if (warningID==1) {
@@ -420,8 +436,13 @@ void runWarnings() {
           s.clear();
         }
       } else if (warningID==3) {
-        if (fscmFConnTime>1000) {
+        if (fscmFConnTime>1500) {
           s.write("signal lost"+",#");
+          s.clear();
+        }
+      } else if (warningID==5) {
+        if (fscmFGAlt>ALTITUDE_CEILING) {
+          s.write("high alt "+nf(fscmFGAlt, 3, 1)+",#");
           s.clear();
         }
       } else if (warningID==4) {
@@ -432,6 +453,9 @@ void runWarnings() {
         }
       }
       warningID++;
+    }
+    if (warningID<0) {
+      warningID=0;
     }
   }
 }

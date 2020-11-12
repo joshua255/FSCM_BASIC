@@ -23,7 +23,7 @@ void fscmTFFscmFComms() {
       data[i] = fscmFRBuf[i];
     }
     rf95.send(data, sizeof(data));
-  } else if (millis() - fscmTLastMillisTransFscmF > 500) {
+  } else if (millis() - fscmTLastMillisTransFscmF > 600) {
     fscmTLastMillisTransFscmF = millis();
     fscmFRI = 0;
     fscmTFDataToSendToFscmF();

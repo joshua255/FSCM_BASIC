@@ -13,7 +13,7 @@ void fscmFFWaypoints() {
     if (numWayPoints > 0) {
       fscmFWD = TinyGPSPlus::distanceBetween(gps.location.lat(), gps.location.lng(), waypoints[0][fscmFWPI - 1], waypoints[1][fscmFWPI - 1]);
       fscmFWH = TinyGPSPlus::courseTo(gps.location.lat(), gps.location.lng(), waypoints[0][fscmFWPI - 1], waypoints[1][fscmFWPI - 1]);
-      fscmFWA = waypoints[2][fscmFWPI] - fscmFGAlt;
+      fscmFWA = waypoints[2][fscmFWPI-1] - fscmFGAlt;
       if (fscmFWD < WAYPOINT_CLOSE_ENOUGH_DIST && abs(fscmFWA) < WAYPOINT_CLOSE_ENOUGH_DIST / 2) {
         fscmFWPI++;
         if (fscmFWPI > numWayPoints) {
@@ -237,7 +237,7 @@ void fscmFFHomeSet() {
     fscmHomeAlt = fscmFAltiVal;//could be improved by including gps
   }
 }
-float fscmFFAltCalc() {
+void fscmFFAltCalc() {
   //can be improved with gps and possible sonar
   fscmFGAlt = fscmFAltiVal - fscmHomeAlt;
 }

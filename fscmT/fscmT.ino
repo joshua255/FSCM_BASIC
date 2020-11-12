@@ -23,7 +23,7 @@ void fscmTFLedDisplay() {
   if (fscmTRecvdFscmFNew) {
     fscmTFSetStatLed(ledConnID, CRGB(5, 255, 30));
   } else {
-    if (millis() - fscmTLastMillisTransFscmF > 600) {
+    if (millis() - fscmTLastMillisTransFscmF > 300) {
       fscmTFSetStatLed(ledConnID, CRGB(255, 5, 5));
     } else {
       fscmTFSetStatLed(ledConnID, CRGB(0, 0, 0));
@@ -47,6 +47,7 @@ void fscmTFDataToParseFromFscmF() {
   fscmFGpsSatStat = fscmTFParseDataFscmFFl();
   fscmFGpsSpeed = fscmTFParseDataFscmFFl();
   fscmFGpsHeading = fscmTFParseDataFscmFFl();
+  fscmFGpsAlt = fscmTFParseDataFscmFFl();
   fscmFGAlt = fscmTFParseDataFscmFFl();
   fscmFBatVolt = fscmTFParseDataFscmFFl();
   fscmFSigStrengthOfTran = fscmTFParseDataFscmFIn();
@@ -59,7 +60,7 @@ void fscmTFDataToParseFromFscmF() {
 }
 void fscmTFDataToSendToFscmF() {
   fscmTFSendDataFscmFBl(fscmRequestHomeSet);
-  fscmTFSendDataFscmFBy(fscmTETVal);//enable
+  fscmTFSendDataFscmFBl(fscmTETVal);//enable
   fscmTFSendDataFscmFBy(fscmTLJYBVal);
   fscmTFSendDataFscmFBy(fscmTLJXBVal);
   fscmTFSendDataFscmFBy(fscmTRJYBVal);
@@ -86,6 +87,7 @@ void fscmTFDataToSendToFscmD() {
   fscmTFSendDataFscmDFl(fscmFGpsSatStat);
   fscmTFSendDataFscmDFl(fscmFGpsSpeed);
   fscmTFSendDataFscmDFl(fscmFGpsHeading);
+  fscmTFSendDataFscmDFl(fscmFGpsAlt);
   fscmTFSendDataFscmDIn(fscmFDistMeters);
   fscmTFSendDataFscmDFl(fscmFHeadFmHome);
   fscmTFSendDataFscmDFl(fscmFOriQuatX);

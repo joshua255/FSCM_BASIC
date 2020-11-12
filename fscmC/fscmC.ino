@@ -17,8 +17,8 @@ void loop() {
   if (millis() - lastRecievedFscmF < 1000) {
     if (fscmCEnabled) {
       digitalWrite(13, HIGH);
-      ////////////enabled
-      digitalWrite(13, LOW);
+      //enabled
+
     } else { //disabled
       digitalWrite(13, LOW);
       ///////////disabled

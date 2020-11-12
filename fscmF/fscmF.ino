@@ -1,7 +1,11 @@
 #include "fscmF.h"
 #include "fscmFFunctions.h"
 void setup() {
-  Serial.begin(2000000);
+  //  Serial.begin(2000000);
+  //  while (!Serial) {
+  //    ;
+  //  }
+  //  Serial.println("starting");
   pinMode(13, OUTPUT);
   pinMode(12, INPUT_PULLUP);
   fscmFFSetupSensors();
@@ -16,9 +20,10 @@ void loop() {
     fscmFFWaypoints();
   }
   fscmFFHomeSet();
-  fscmFGAlt = fscmFFAltCalc();
+  fscmFFAltCalc();
   if (millis() - fscmFLastRecvMillis < SHUTOFF_AFTER_MILLIS) {//connected
     digitalWrite(13, fscmFEnabled);
+
   } else {//signal loss
     if (millis() % 500 < 200) {
       digitalWrite(13, HIGH);
@@ -63,6 +68,7 @@ void fscmFFDataToSendToFscmT() {
   fscmFFSendDataFscmTFl(fscmFGpsSatStat);
   fscmFFSendDataFscmTFl(fscmFGpsSpeed);
   fscmFFSendDataFscmTFl(fscmFGpsHeading);
+  fscmFFSendDataFscmTFl(fscmFGpsAlt);
   fscmFFSendDataFscmTFl(fscmFGAlt);
   fscmFFSendDataFscmTFl(fscmFBatVolt);
   fscmFFSendDataFscmTIn(fscmFSigStrengthOfTran);
@@ -75,7 +81,7 @@ void fscmFFDataToSendToFscmT() {
 }
 void fscmFFDataToParseFromFscmT() {
   fscmRequestHomeSet = fscmFFParseDataFscmTBl();
-  fscmFEnabled = fscmFFParseDataFscmTBy();
+  fscmFEnabled = fscmFFParseDataFscmTBl();
   jly = fscmFFParseDataFscmTBy();
   jlx = fscmFFParseDataFscmTBy();
   jry = fscmFFParseDataFscmTBy();

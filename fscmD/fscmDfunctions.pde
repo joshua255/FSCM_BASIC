@@ -66,7 +66,6 @@ void fscmDWaypointsSend() {
   }
   if (sendWPoints) {
     if (fscmDJustGotTS) {
-      println("sending");
       if (byte(points.getRowCount())<=25) {//size of fscmF waypoints array
         pointsWNum=byte(points.getRowCount());
         if (pointsWI<100) {
@@ -76,7 +75,7 @@ void fscmDWaypointsSend() {
           sendWPoints=false;
           pointsWI=0;
         } else {
-          SWPB.msg=str(pointsWI-99)+"/"+nf(pointsWNum);
+          SWPB.msg=str(pointsWI-99)+"/"+nf(pointsWNum, 1);
           if (pointsWI>=100&&pointsWI<100+points.getRowCount()) {          
             pointsWI++;
             pointsWLat=points.getFloat(pointsWI-101, "Latitude");
@@ -102,7 +101,9 @@ void runTelog() {
     saveTelog();
   }
   if (telogging) {
-    recTelog();
+    if (fscmDJustGotTS) {
+      recTelog();
+    }
   }
 }
 void setupTelog() {
@@ -240,7 +241,7 @@ class fscmdMapStatus {
       if (mouseX>x+5&&mouseY>y+h-3-15&&mouseX<x+w-10&&mouseY<y+h-3&&mousePushed&&mouseButton==RIGHT) {
         mousePushed=false;
         points.removeRow(pointClicked);
-        for (int j=pointClicked; j<points.getRowCount(); j++) {
+        for (int j=pointClicked; j<points.getRowCount (); j++) {
           points.setInt(j, "ID", j);
         }
         pointHovered=-1;
@@ -302,11 +303,11 @@ class fscmdMapDisplay {
     map = new UnfoldingMap(fscmD.this, x, y, s, s, new Microsoft.HybridProvider());
     map.setZoomRange(4, 18);
     map.zoomAndPanTo(10, new Location(fscmHomeLat, fscmHomeLon));
-    eventDispatcher = new EventDispatcher();
-    MouseHandler mouseHandler = new MouseHandler(fscmD.this, map);
-    eventDispatcher.addBroadcaster(mouseHandler);
-    eventDispatcher.register(map, PanMapEvent.TYPE_PAN, map.getId());
-    eventDispatcher.register(map, ZoomMapEvent.TYPE_ZOOM, map.getId());
+    //eventDispatcher = new EventDispatcher();
+    //MouseHandler mouseHandler = new MouseHandler(fscmD.this, map);
+    //eventDispatcher.addBroadcaster(mouseHandler);
+    //eventDispatcher.register(map, PanMapEvent.TYPE_PAN, map.getId());
+    //eventDispatcher.register(map, ZoomMapEvent.TYPE_ZOOM, map.getId());
     mpg=createGraphics(s, s, P2D);
   }
   void display(float FscmFGpsLat, float FscmFGpsLon, float DHomeHeading, float DDOFHeading, float DGPSHeading, float FscmHomeLat, float FscmHomeLon) {
@@ -319,17 +320,15 @@ class fscmdMapDisplay {
       zoomloclist.add(new Location(GeoUtils.getDestinationLocation(new Location(FscmHomeLat, FscmHomeLon), 0, maxDispFlyDistMeters/1110.00)));
       map.zoomAndPanToFit(zoomloclist);
       map.rotateTo(-radians(DHomeHeading));
-      while (!map.allTilesLoaded()) {
-        map.draw();
-      }
+      map.draw();
     }
-    if (pointClicked>=0&&pointClicked<=255) {
-      eventDispatcher.unregister(map, PanMapEvent.TYPE_PAN, map.getId());
-      eventDispatcher.unregister(map, ZoomMapEvent.TYPE_ZOOM, map.getId());
-    } else {
-      eventDispatcher.register(map, PanMapEvent.TYPE_PAN, map.getId());
-      eventDispatcher.register(map, ZoomMapEvent.TYPE_ZOOM, map.getId());
-    }
+    //if (pointClicked>=0&&pointClicked<=255) {
+    //  eventDispatcher.unregister(map, PanMapEvent.TYPE_PAN, map.getId());
+    //  eventDispatcher.unregister(map, ZoomMapEvent.TYPE_ZOOM, map.getId());
+    //} else {
+    //  eventDispatcher.register(map, PanMapEvent.TYPE_PAN, map.getId());
+    //  eventDispatcher.register(map, ZoomMapEvent.TYPE_ZOOM, map.getId());
+    //}
     map.draw();
     strokeWeight(1);
     stroke(255);
@@ -354,8 +353,8 @@ class fscmdMapDisplay {
     }
     mpg.beginDraw();
     mpg.clear();
-    for (int i=0; i<points.getRowCount(); i++) {
-      marker(i, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-x, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-y, colorHSB(map(i, 0, points.getRowCount(), 0, 255), 100, 255), nf(points.getInt(i, "ID")), nf(points.getFloat(i, "Altitude"), 0, 1), nf((540-DDOFHeading+degrees((float)GeoUtils.getAngleBetween(new Location(FscmFGpsLat, FscmFGpsLon), new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))))%360-180, 0, 2), str((int)(1000.0000*GeoUtils.getDistance(FscmFGpsLat, FscmFGpsLon, points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))));
+    for (int i=0; i<points.getRowCount (); i++) {
+      marker(i, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-x, map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-y, colorHSB(map(i, 0, points.getRowCount(), 0, 255), 100, 255), nf(points.getInt(i, "ID"), 1), nf(points.getFloat(i, "Altitude")-fscmFGAlt, 0, 1), nf((540-DDOFHeading+degrees((float)GeoUtils.getAngleBetween(new Location(FscmFGpsLat, FscmFGpsLon), new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))))%360-180, 0, 2), str((int)(1000.0000*GeoUtils.getDistance(FscmFGpsLat, FscmFGpsLon, points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude")))));
     }
     if (clickpoint==false&&mousePushed&&mouseX>x&&mouseX<x+s&&mouseY>y&&mouseY<y+s) {
       pointClicked=-1;
@@ -563,14 +562,14 @@ void fscmdSendDataFscmTFl(float d) {
 }
 void fscmdSetupFscmTComms() {
   try {
-    fscmTS=new Serial(this, Serial.list()[0], 2000000);
+    delay(500);
+    fscmTS=new Serial(this, "COM100", 2000000);
     fscmTS.bufferUntil('>');
   }
   catch(Exception e) {
     println("no transmitter, stopping program!");
     while (true);
   }
-  delay(500);
 }
 void fscmdHomeSet() {
   if (fscmHomeSet==true) {
@@ -782,10 +781,17 @@ class fscmdOrientationDisplay {
     posx=POSX; 
     posy=POSY; 
     size=SIZE; 
-    maxDistMeters=MAXDISTMETERS; 
+    maxDistMeters=MAXDISTMETERS;
+  }
+  void setUp() {
     stg=createGraphics(stgiRes, stgiRes); 
     stg.beginDraw(); 
-    stg.background(0); 
+    stg.clear();
+    //    stg.background(0); 
+    stg.fill(0, 0, 255, 50);
+    stg.rect(0, 0, stgiRes, stgiRes/2); //tint
+    stg.fill(0, 255, 0, 50);
+    stg.rect(0, stgiRes/2, stgiRes, stgiRes/2);
     stg.noStroke(); 
     stg.strokeWeight(2); 
     stg.stroke(255, 0, 0); 
@@ -811,14 +817,13 @@ class fscmdOrientationDisplay {
     for (int i=90; i<360; i+=90) {
       stg.line(map(i, 0, 360, 0, stgiRes), 0, map(i, 0, 360, 0, stgiRes), stgiRes);
     }
-    stg.strokeWeight(7);
+    stg.strokeWeight(5);
     stg.stroke(255, 0, 0); 
     stg.line(2, 0, 2, stgiRes); 
     stg.endDraw(); 
     stgi=stg.get(); 
     sTw=createGraphics(size, size, P3D); 
     sTx=createGraphics(size, size, P3D); 
-    sTxL=createGraphics(int(landRat*maxDistMeters*2), int(landRat*maxDistMeters*2)); 
     sTxLM=createGraphics(int(landRat*maxDistMeters*2), int(landRat*maxDistMeters*2)); 
     sTxLM.beginDraw(); 
     sTxLM.background(0); 
@@ -827,11 +832,12 @@ class fscmdOrientationDisplay {
     sTxLM.ellipse(landRat*maxDistMeters, landRat*maxDistMeters, landRat*maxDistMeters*2, landRat*maxDistMeters*2); 
     sTxLM.endDraw();
     map = new UnfoldingMap(fscmD.this, width+10, 0, landRat*maxDistMeters*2, landRat*maxDistMeters*2, new Microsoft.HybridProvider());
+    sTxL=createGraphics(int(landRat*maxDistMeters*2), int(landRat*maxDistMeters*2)); 
     sTxL.beginDraw();
     sTxL.background(0, 150, 0);
     sTxL.stroke(150);
     sTxL.strokeWeight(1);
-    for (int i=0; i<int(2*landRat*maxDistMeters); i+=landRat*10) {
+    for (int i=0; i<int (2*landRat*maxDistMeters); i+=landRat*10) {
       sTxL.line(i, 0, i, landRat*maxDistMeters*2);
       sTxL.line(0, i, landRat*maxDistMeters*2, i);
     }
@@ -875,10 +881,11 @@ class fscmdOrientationDisplay {
     if (map.allTilesLoaded()&&mapped) {
       mapped=false;
       sTxL.beginDraw();
+      sTxL.clear();
       sTxL.image(map.mapDisplay.getOuterPG().get(), 0, 0, landRat*maxDistMeters*2, landRat*maxDistMeters*2);
       sTxL.stroke(150);
       sTxL.strokeWeight(1);
-      for (int i=0; i<int(2*landRat*maxDistMeters); i+=landRat*10) {
+      for (int i=0; i<int (2*landRat*maxDistMeters); i+=landRat*10) {
         sTxL.line(i, 0, i, landRat*maxDistMeters*2);
         sTxL.line(0, i, landRat*maxDistMeters*2, i);
       }
@@ -894,32 +901,25 @@ class fscmdOrientationDisplay {
       sTxL.mask(sTxLM.get());
     }
     sTw.beginDraw(); 
+    sTw.clear();
     sTw.perspective(radians(90), 1, 1, 100000); 
-    sTw.background(0); 
+    //sTw.background(0); 
     sTw.pushMatrix(); 
     sTw.translate(size/2, size/2, (size/2.0) / tan(PI*30.0 / 180.0)); 
     float[] rEs=fscmdoritoAxisAngle(); 
     sTw.rotateY(radians(180));    
-    sTw.rotateY(radians(MAGNETIC_VARIATION));
     sTw.rotate(rEs[0], rEs[2], rEs[3], rEs[1]);
+    sTw.rotateY(radians(MAGNETIC_VARIATION));
     sTw.shape(sphere); 
-    sTw.noStroke(); 
-    sTw.fill(0, 255, 0, 90); 
-    sTw.translate(0, size/10, 0); 
-    sTw.box(size/5); 
-    sTw.fill(0, 0, 255, 90); 
-    sTw.translate(0, -2*size/10, 0); 
-    sTw.box(size/5); 
     sTw.popMatrix(); 
     sTw.endDraw(); 
-
     sTx.beginDraw(); 
     sTx.perspective(radians(90), 1, 1, 100000); 
-    sTx.background(255); 
+    sTx.background(100); 
     sTx.pushMatrix(); 
     sTx.translate(size/2, size/2, (size/2.0) / tan(PI*30.0 / 180.0)); 
     sTx.rotateY(radians(180));
-    sTx.rotate(rEs[0], rEs[2], rEs[3], rEs[1]);    
+    sTx.rotate(rEs[0], rEs[2], rEs[3], rEs[1]);
     sTx.rotateY(radians(MAGNETIC_VARIATION));
     sTx.pushMatrix(); 
     sTx.translate(-cos(-radians(dheadingfromhome))*ddistmeters*landRat, cgaltitude*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat);
@@ -949,7 +949,7 @@ class fscmdOrientationDisplay {
     sTx.pushMatrix();
     sTx.translate(-cos(-radians(dheadingfromhome))*ddistmeters*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat, 0);
     sTx.rotateZ(PI/2);
-    for (int i=0; i<points.getRowCount(); i++) {
+    for (int i=0; i<points.getRowCount (); i++) {
       sTx.pushMatrix();
       sTx.translate((map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).x-width-10-landRat*maxDistMeters), (map.getScreenPosition(new Location(points.getFloat(i, "Latitude"), points.getFloat(i, "Longitude"))).y-landRat*maxDistMeters), landRat*points.getFloat(i, "Altitude"));
       sTx.noStroke();
@@ -965,9 +965,6 @@ class fscmdOrientationDisplay {
     sTx.stroke(0, 100, 0); 
     sTx.line(0, 0, -cos(radians(-dheadingfromhome))*maxDistMeters*landRat*12, sin(radians(-dheadingfromhome))*maxDistMeters*landRat*12); 
     sTx.popMatrix();
-    sTx.noStroke(); 
-    sTx.fill(255, 0, 255);
-    sTx.ellipse(0, 0, maxDistMeters*landRat/1000, maxDistMeters*landRat/1000);
     sTx.strokeWeight(3);
     sTx.stroke(200, 70, 70);
     sTx.line(-cos(-radians(dheadingfromhome))*ddistmeters*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat, -cos(-radians(dheadingfromhome))*ddistmeters*landRat+ cos(radians(dhomeheading))*maxDistMeters*landRat, sin(-radians(dheadingfromhome))*ddistmeters*landRat+sin(radians(dhomeheading))*maxDistMeters*landRat);
@@ -975,9 +972,9 @@ class fscmdOrientationDisplay {
     sTx.endDraw(); 
     noStroke(); 
     image(sTx, posx, posy, size, size); 
-    tint(255, 50); 
+    //    tint(255, 50); 
     image(sTw, posx, posy, size, size); 
-    noTint(); 
+    //    noTint(); 
     strokeWeight(1); 
     stroke(255, 0, 0, 150); 
     line(posx, posy+size/2, posx+size, posy+size/2); 
@@ -998,73 +995,7 @@ class fscmdOrientationDisplay {
     return res;
   }
 }
-//class fscmdHeadingDistanceDisplay {
-//  /////////////setup vars
-//  int posCX; 
-//  int posCy; 
-//  int size; 
-//  float maxDistMeters; 
 
-//  /////////////internal vars
-//  float distDispPixels; 
-
-//  /////////////display vars
-//  float dHomeHeading; 
-//  float dHeadingFromHome; 
-//  float dDOFHeading; 
-//  float dGPSHeading; 
-//  float dDistMeters; 
-
-//  fscmdHeadingDistanceDisplay(int PosCX, int PosCy, int Size, float MaxDispMeters) {
-//    posCX=PosCX; 
-//    posCy=PosCy; 
-//    size=Size; 
-//    maxDistMeters=MaxDispMeters;
-//  }
-//  void display(float DHomeHeading, float DHeadingFromHome, float DDistMeters, float DDOFHeading, float DGPSHeading) {
-//    dHomeHeading=DHomeHeading; 
-//    dHeadingFromHome=DHeadingFromHome; 
-//    dDistMeters=DDistMeters; 
-//    dDOFHeading=DDOFHeading; 
-//    dGPSHeading=DGPSHeading; 
-//    fill(10, 50, 10); 
-//    stroke(255); 
-//    strokeWeight(1); 
-//    ellipse(posCX, posCy, size, size); //background
-
-//    fill(100); 
-//    triangle(posCX-size/25, posCy, posCX+size/25, posCy, posCX, posCy-size/10); //home station heading
-//    noStroke(); 
-//    fill(255, 0, 0); 
-//    ellipse(posCX, posCy, 5, 5); 
-//    stroke(255); 
-//    strokeWeight(1); 
-
-//    pushMatrix(); 
-//    translate(posCX, posCy); 
-//    rotate(PI-radians(dHomeHeading)); 
-//    fill(155, 0, 0); 
-//    triangle(-size/30, size*.4, size/30, size*.4, 0, size*.48); //north
-//    popMatrix(); 
-
-//    pushMatrix(); 
-//    translate(posCX, posCy); 
-//    rotate(PI-radians(dHomeHeading-dHeadingFromHome)); 
-//    distDispPixels=int(constrain(map(dDistMeters, 0, maxDistMeters, 0, size/2-size/10), 0, (size/2)-size/10)); //flyer
-//    translate(0, distDispPixels); 
-//    rotate(radians(dDOFHeading-dHeadingFromHome)); 
-//    fill(255, 205, 255); 
-//    triangle(-size/35, 0, size/35, 0, 0, size/12); 
-//    fill(255, 0, 0); 
-//    ellipse(0, 0, 6, 6); 
-//    rotate(-radians(dDOFHeading-dHeadingFromHome)); 
-//    rotate(radians((dGPSHeading-dHeadingFromHome))); 
-//    strokeWeight(2); 
-//    stroke(0, 0, 255); 
-//    line(0, 0, 0, size/11); //gps plane direction
-//    popMatrix();
-//  }
-//}
 class fscmdSlider {
   float x;
   float y;

@@ -17,7 +17,6 @@ void setup() {
   stroke(0);
   frameRate(10); // Slow it down a little
   s = new Server(this, 12340); // Start a simple server on a port
-  println(s.ip());
 }
 
 void draw() {

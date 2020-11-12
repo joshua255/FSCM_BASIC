@@ -33,7 +33,7 @@ float waypoints[3][25] = {0};
 
 float fscmFGpsAlt = 0;
 float fscmFAltiVal = 0;
-
+float fscmFGpsHomeAlt = 200;
 float fscmHomeLat = 45;
 float fscmHomeLon = -100;
 float fscmHomeAlt = 15000;

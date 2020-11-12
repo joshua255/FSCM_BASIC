@@ -14,6 +14,11 @@ void loop() {
 }
 void fscmTFLedDisplay() {
   //rainbows!
+  if (fscmDWarnings) {
+    fscmTFSetStatLed(ledLeftID, CRGB(255, 0, 0));
+  }else{
+    if((fscmTLKBVal/30)%
+  }
   fscmTFSetStatLed(ledLeftID, CRGB(fscmDWarnings * 255, !fscmDWarnings * 15, 0));
   fscmTFSetStatLed(ledBatStatTopID, CRGB(constrain(map(fscmFBatVolt * 1000, 3800, 4200, 100, 0), 0, 100), constrain(map(fscmFBatVolt * 1000, 3800, 4200, 0, 100), 0, 100), 0));
   fscmTFSetStatLed(ledBatStatMidID, CRGB(constrain(map(fscmFBatVolt * 1000, 3400, 3800, 100, 0), 0, 100), constrain(map(fscmFBatVolt * 1000, 3400, 3800, 0, 100), 0, 100), 0));

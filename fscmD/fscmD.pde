@@ -22,7 +22,7 @@ fscmdSlider WASM;
 fscmdButton SSB;
 fscmdButton LSB;
 //////////////////constants to pass in/////////////////////////////////////////////////////
-float maxDispFlyDistMeters=1000;
+float maxDispFlyDistMeters=500;
 float WARNINGALT=0;
 float ALTITUDE_CEILING=100;
 float WAYPOINT_CLOSE_ENOUGH_DIST=10.0;
@@ -90,16 +90,16 @@ float pointsWAlt=0.00;
 ////////////////////////////////////////////////////////////////////////////////////
 void setup() {
   noSmooth();
-  size(1350, 700, P2D);//P2D is important
+  size(2450, 1350, P2D);//P2D is important
   background(0);
   stroke(255);
   textSize(40);
   text("loading FSCMd...", width*.4, height*.4);
   s=new Client(this, "localhost", 12340);
   setupPoints();
-  MD=new fscmdMapDisplay(173, 225, 475, maxDispFlyDistMeters);
+  MD=new fscmdMapDisplay(250, 250, 1050, maxDispFlyDistMeters);
   MS=new fscmdMapStatus(0, 75, 171, 175);
-  OTD=new fscmdOrientationDisplay(650, 0, 700, maxDispFlyDistMeters);
+  OTD=new fscmdOrientationDisplay(1300, 250, 1050, maxDispFlyDistMeters);
   MBGBOO=new fscmdMiBarGraphDisplay(0, 0, 50, 3, "orientation status");
   MBGBOA=new fscmdMiBarGraphDisplay(50, 0, 35, 3, "BNO055 accel status");
   MBGBOG=new fscmdMiBarGraphDisplay(85, 0, 35, 3, "BNO055 gyro status");
@@ -129,7 +129,7 @@ void draw() {
   }
   noStroke();
   fill(15);
-  rect(170, 101, 480, 124);
+  rect(170, 101, 480, 147);
   fscmFEul=fscmdQuaternionToEuler(fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFOriQuatW);
   setHome=BSH.display(setHome);
   fscmDWaypointsSend();
@@ -179,7 +179,7 @@ void draw() {
     "latitude", 
     "longitude", 
     "gps sat stat", 
-    "gps ground speed", 
+    "gps speed", 
     "gps heading", 
     "gps altitude", 
     "heading", 
@@ -206,6 +206,10 @@ void draw() {
     "fscmFWH", 
     "fscmFWD", 
     "fscmFWA", 
+    "r joy x", 
+    "r joy y", 
+    "l joy x", 
+    "l joy y", 
     "etv"
   };
   float[] dispVal= {
@@ -243,9 +247,13 @@ void draw() {
     fscmFWH, 
     fscmFWD, 
     fscmFWA, 
+    fscmTRJXBVal, 
+    fscmTRJYBVal, 
+    fscmTLJXBVal, 
+    fscmTLJYBVal, 
     int(fscmTETVal)
   };
-  fscmdDisplayInfo(dispMsg, dispVal, 0, 250, 170, 450, 10);
+  fscmdDisplayInfo(dispMsg, dispVal, 0, 250, 249, 1049, 16);
   MBGBOO.display(fscmFOriSystemCal);
   MBGBOA.display(fscmFOriAccelCal);
   MBGBOG.display(fscmFOriGyroCal);
@@ -339,7 +347,7 @@ void runWarnings() {
     numWarnings++;
   }
   if (fscmTLTVal&&numWarnings==0) {
-    if ((frameCount-lastWarned)/frameRate>10||((frameCount-lastWarned)/frameRate>1&&s.available()>0)) {
+    if ((frameCount-lastWarned)/frameRate>20||((frameCount-lastWarned)/frameRate>2.5&&s.available()>0)) {
       lastWarned=frameCount;
       if (fscmTLKBVal>=0&&fscmTLKBVal<30) {
         if (fscmTLBVal||warningID!=-1) {
@@ -402,7 +410,7 @@ void runWarnings() {
           s.write("waypoint"+",#");
         } else {
           if (fscmFWPI>0) {
-            s.write(nf(int((540+fscmFWH-fscmFEul[0])%360-180), 2)+". "+int(fscmFWD)+",#");
+            s.write(nf(int((540+fscmFWH-fscmFEul[0])%360-180), 2)+" d "+int(fscmFWD)+" m,#");
           } else {
             s.write("no point,#");
           }

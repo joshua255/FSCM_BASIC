@@ -188,7 +188,7 @@ void fscmTFReadInputs() {
   fscmTLJXBVal = constrain(map(analogRead(LJXPin), 106, 899, 0, 255), 0, 255);
   fscmTLJYBVal = constrain(map(analogRead(LJYPin), 199, 816, 0, 255), 0, 255);
   fscmTRJXBVal = constrain(map(analogRead(RJXPin), 898, 168, 0, 255), 0, 255);
-  fscmTRJYBVal = constrain(map(analogRead(RJYPin), 143, 797, 0, 255), 0, 255);
+  fscmTRJYBVal = constrain(map(analogRead(RJYPin), 150, 797, 0, 255), 0, 255);
   fscmTLKBVal = constrain(map(analogRead(LKPin), 0, 1023, 0, 255), 0, 255);
   fscmTRKBVal = constrain(map(analogRead(RKPin), 0, 1023, 0, 255), 0, 255);
   fscmTLJXIVal = analogRead(LJXPin);

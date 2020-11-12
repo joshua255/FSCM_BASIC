@@ -382,14 +382,14 @@ class fscmdMapDisplay {
     mpg.pushMatrix();
     mpg.strokeWeight(1);
     mpg.rotate(PI+radians(DDOFHeading-DHomeHeading));
-    mpg.fill(255, 255, 255); 
+    mpg.fill(255, 255, 255, 150); 
     mpg.stroke(0);
-    mpg.triangle(-s/75, 0, s/75, 0, 0, s/20);
+    mpg.triangle(-s/100, 0, s/100, 0, 0, s/35);
     mpg.stroke(255, 255, 255, 180);
     mpg.strokeWeight(2);
     mpg.line(0, 0, 0, s);
     mpg.fill(255, 0, 0); 
-    mpg.ellipse(0, 0, 6, 6);
+    mpg.ellipse(0, 0, 10, 10);
     mpg.popMatrix();
     mpg.rotate(PI+radians((DGPSHeading-DHomeHeading)));
     mpg.stroke(0, 0, 255, 180); 
@@ -754,8 +754,8 @@ class fscmdOrientationDisplay {
   float maxDistMeters; 
 
   //////////internal vars
-  int stgiRes=2500; 
-  float landRat=3; 
+  int stgiRes=5000; 
+  float landRat=4; 
 
   //////////updated vars
   float oriqw=1; 

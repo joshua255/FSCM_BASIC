@@ -68,7 +68,7 @@ void fscmFFDataToSendToFscmT() {
   fscmFFSendDataFscmTFl(fscmFGpsSatStat);
   fscmFFSendDataFscmTFl(fscmFGpsSpeed);
   fscmFFSendDataFscmTFl(fscmFGpsHeading);
-  fscmFFSendDataFscmTFl(fscmFGpsAlt);
+  fscmFFSendDataFscmTFl(fscmFGpsAlt - fscmFGpsHomeAlt);
   fscmFFSendDataFscmTFl(fscmFGAlt);
   fscmFFSendDataFscmTFl(fscmFBatVolt);
   fscmFFSendDataFscmTIn(fscmFSigStrengthOfTran);

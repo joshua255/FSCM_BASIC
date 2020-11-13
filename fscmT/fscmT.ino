@@ -7,6 +7,15 @@ void setup() {
 }
 void loop() {
   fscmTFReadInputs();
+  if (fscmDWarnings) {
+    fscmTFSetStatLed(ledLeftID, CRGB(255, 0, 0));
+  } else {
+    if (fscmTLTVal) {
+      fscmTFSetStatLed(ledLeftID, CHSV(map(fscmTLKBVal / 30, 0, 9, 30, 235), 200, 150));
+    } else {
+      fscmTFSetStatLed(ledLeftID, CRGB(5, 5, 5));
+    }
+  }
   fscmTFSetStatLed(ledTogLightID, CRGB(fscmTETVal * 255, fscmTETVal * 250 + !fscmTETVal * 35, !fscmTETVal * 8 + fscmTETVal * 140));
   fscmTFFscmDComms();
   fscmTFFscmFComms();
@@ -14,12 +23,6 @@ void loop() {
 }
 void fscmTFLedDisplay() {
   //rainbows!
-  if (fscmDWarnings) {
-    fscmTFSetStatLed(ledLeftID, CRGB(255, 0, 0));
-  }else{
-    if((fscmTLKBVal/30)%
-  }
-  fscmTFSetStatLed(ledLeftID, CRGB(fscmDWarnings * 255, !fscmDWarnings * 15, 0));
   fscmTFSetStatLed(ledBatStatTopID, CRGB(constrain(map(fscmFBatVolt * 1000, 3800, 4200, 100, 0), 0, 100), constrain(map(fscmFBatVolt * 1000, 3800, 4200, 0, 100), 0, 100), 0));
   fscmTFSetStatLed(ledBatStatMidID, CRGB(constrain(map(fscmFBatVolt * 1000, 3400, 3800, 100, 0), 0, 100), constrain(map(fscmFBatVolt * 1000, 3400, 3800, 0, 100), 0, 100), 0));
   fscmTFSetStatLed(ledBatStatBotID, CRGB(constrain(map(fscmFBatVolt * 1000, 3000, 3400, 100, 0), 0, 255), constrain(map(fscmFBatVolt * 1000, 3000, 3400, 0, 100), 0, 100), 0));

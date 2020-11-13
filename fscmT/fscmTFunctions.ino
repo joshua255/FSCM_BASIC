@@ -185,21 +185,21 @@ void fscmTFSetupDComms() {
   Serial.setTimeout(50);
 }
 void fscmTFReadInputs() {
-  fscmTLJXBVal = constrain(map(analogRead(LJXPin), 106, 899, 0, 255), 0, 255);
-  fscmTLJYBVal = constrain(map(analogRead(LJYPin), 199, 816, 0, 255), 0, 255);
-  fscmTRJXBVal = constrain(map(analogRead(RJXPin), 898, 168, 0, 255), 0, 255);
-  fscmTRJYBVal = constrain(map(analogRead(RJYPin), 150, 797, 0, 255), 0, 255);
+  fscmTLJXBVal = constrain(map(analogRead(LJXPin), 127, 876, -5, 260), 0, 255);
+  fscmTLJYBVal = constrain(map(analogRead(LJYPin), 184, 820, -5, 260), 0, 255);
+  fscmTRJXBVal = constrain(map(analogRead(RJXPin), 912, 188, -5, 260), 0, 255);
+  fscmTRJYBVal = constrain(map(analogRead(RJYPin), 145, 795, -5, 260), 0, 255);
   fscmTLKBVal = constrain(map(analogRead(LKPin), 0, 1023, 0, 255), 0, 255);
   fscmTRKBVal = constrain(map(analogRead(RKPin), 0, 1023, 0, 255), 0, 255);
   fscmTLJXIVal = analogRead(LJXPin);
   fscmTLJYIVal = analogRead(LJYPin);
   fscmTRJXIVal = analogRead(RJXPin);
-  //  fscmTRJYIVal = analogRead(RJYPin);
+  fscmTRJYIVal = analogRead(RJYPin);
   //  Serial.println();
-  //  Serial.print(fscmTLJXIVal); Serial.print(",");
-  //  Serial.print(fscmTLJYIVal); Serial.print(",");
-  //  Serial.print(fscmTRJXIVal); Serial.print(",");
-  //  Serial.print(fscmTRJYIVal); Serial.println(",");
+//    Serial.print(fscmTLJXBVal); Serial.print(",");
+//    Serial.print(fscmTLJYBVal); Serial.print(",");
+//    Serial.print(fscmTRJXBVal); Serial.print(",");
+//    Serial.print(fscmTRJYBVal); Serial.println(",");
   fscmTLKIVal = analogRead(LKPin);
   fscmTRKIVal = analogRead(RKPin);
   fscmTRTVal = (digitalRead(RTPin) == LOW);

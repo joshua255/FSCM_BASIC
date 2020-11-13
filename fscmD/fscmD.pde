@@ -90,7 +90,7 @@ float pointsWAlt=0.00;
 ////////////////////////////////////////////////////////////////////////////////////
 void setup() {
   noSmooth();
-  size(2450, 1350, P2D);//P2D is important
+  size(2470, 1300, P2D);//P2D is important
   background(0);
   stroke(255);
   textSize(40);
@@ -121,7 +121,6 @@ void setup() {
   WASM=new fscmdSlider(243, 184, 20, color(200, 20, 200), "maxA", WARNINGALT, 0, 150);
   fscmdSetupFscmTComms();//nothing needs to be called in draw()
   frameRate(10);
-  s.write("f s c m starting,#");
 }
 void draw() {
   if (frameCount==1) {
@@ -170,7 +169,7 @@ void draw() {
   }
   fscmdHomeSet();
   runWarnings();
-  OTD.display(fscmFOriQuatW, fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFGpsHeading, fscmFGAlt, fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters); //float Oriqw, float Oriqx, float Oriqy, float Oriqz, float GpsHeading, float CGAltitude, float DHomeHeading, float DHeadingFromHome, float DDistMeters
+  OTD.display(fscmFOriQuatW, fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFGpsHeading, fscmFGAlt, fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters, fscmFEul[0]);
   String[] dispMsg= {
     "home set", 
     "home lat", 
@@ -210,7 +209,7 @@ void draw() {
     "r joy y", 
     "l joy x", 
     "l joy y", 
-    "etv"
+    "enabled"
   };
   float[] dispVal= {
     int(fscmHomeSet), 
@@ -253,14 +252,22 @@ void draw() {
     fscmTLJYBVal, 
     int(fscmTETVal)
   };
+  noStroke();
+  if (fscmTETVal) fill(255); 
+  else fill(0, 155, 0);
+  rect(670, 20, 400, 200);
+  textSize(70);
+  fill(0);
+  text(fscmTETVal?"ENABLED":"DISABLED", 700, 150);
   fscmdDisplayInfo(dispMsg, dispVal, 0, 250, 249, 1049, 16);
   MBGBOO.display(fscmFOriSystemCal);
   MBGBOA.display(fscmFOriAccelCal);
   MBGBOG.display(fscmFOriGyroCal);
   MBGBOM.display(fscmFOriMagCal);
   //  TBATCGD.display(fscmTBatVVal);
-  MS.display(points);
+  MS.display();
   MD.display(fscmFGpsLat, fscmFGpsLon, fscmHomeHeading, fscmFEul[0], fscmFGpsHeading, fscmHomeLat, fscmHomeLon);
+  displayAlt(2351, 250, 118, 1049, WARNINGALT, ALTITUDE_CEILING, -2, 120, fscmFGAlt, fscmFGpsAlt);
   PWG.display(fscmFBatVolt);
   PWRCBG.display(fscmFBatVolt);
   FSCMDRSSI.display(fscmFSigStrengthOfTran);
@@ -274,6 +281,9 @@ void draw() {
   homeSet=false;
   fscmDJustGotTS=false;
   mouseDragged=false;
+  if (frameCount==1) {
+    s.write("f s c m starting,#");
+  }
 }
 void fscmdDataToParseFromFscmT() {
   fscmHomeSet=fscmdParseFscmTBl();
@@ -333,7 +343,9 @@ void runWarnings() {
     numWarnings++;
   }
   if (fscmFGAlt<=WARNINGALT) {
-    numWarnings++;
+    if (!altwarningsilenced) {
+      numWarnings++;
+    }
   } else {
     altwarningsilenced=false;
   }
@@ -347,7 +359,10 @@ void runWarnings() {
     numWarnings++;
   }
   if (fscmTLTVal&&numWarnings==0) {
-    if ((frameCount-lastWarned)/frameRate>20||((frameCount-lastWarned)/frameRate>2.5&&s.available()>0)) {
+    if ((frameCount-lastWarned)/frameRate>20||((frameCount-lastWarned)/frameRate>.5&&s.available()>0)) {
+      while (s.available()>0) {
+        s.read();
+      }
       lastWarned=frameCount;
       if (fscmTLKBVal>=0&&fscmTLKBVal<30) {
         if (fscmTLBVal||warningID!=-1) {
@@ -410,7 +425,7 @@ void runWarnings() {
           s.write("waypoint"+",#");
         } else {
           if (fscmFWPI>0) {
-            s.write(nf(int((540+fscmFWH-fscmFEul[0])%360-180), 2)+" d "+int(fscmFWD)+" m,#");
+            s.write("heading "+nf(int((540+fscmFWH-fscmFEul[0])%360-180), 2)+" dist "+int(fscmFWD)+" alt "+int(fscmFWA)+",#");
           } else {
             s.write("no point,#");
           }

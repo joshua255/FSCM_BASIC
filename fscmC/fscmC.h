@@ -6,3 +6,18 @@ byte lk = 0;
 byte rk = 0;
 boolean lt = false;
 boolean rt = false;
+#include <Servo.h>
+Servo ailerons;
+Servo elevator;
+Servo throttle;
+Servo rudder;
+boolean inControl = false;
+boolean receiverOffline = false;
+float busVoltage = 0;
+float batVoltage = 0;
+volatile unsigned long controlPinRiseTime = 0;
+volatile unsigned long controlPinFallTime = 0;
+const unsigned int controlThresh = 1700;
+const unsigned int controlTimeout = 500000;
+float busVoltsPerDAC = 0.00776;
+float batVoltsPerDAC = .03175;

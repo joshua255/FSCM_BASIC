@@ -35,6 +35,10 @@ void loop() {
 void fscmFFDataToParseFromFscmC() {
   fscmCPitch = fscmFFParseDataFscmCFl();
   fscmCRoll = fscmFFParseDataFscmCFl();
+  inControl = fscmFFParseDataFscmCBl();
+  receiverOffline = fscmFFParseDataFscmCBl();
+  batVoltage = fscmFFParseDataFscmCFl();
+  busVoltage = fscmFFParseDataFscmCFl();
 }
 void fscmFFDataToSendToFscmC() {
   fscmFFSendDataFscmCBl(fscmFEnabled);
@@ -78,6 +82,10 @@ void fscmFFDataToSendToFscmT() {
   fscmFFSendDataFscmTFl(fscmFWH);
   fscmFFSendDataFscmTFl(fscmFWD);
   fscmFFSendDataFscmTFl(fscmFWA);
+  fscmFFSendDataFscmTBl(inControl);
+  fscmFFSendDataFscmTBl(receiverOffline);
+  fscmFFSendDataFscmTFl(batVoltage);
+  fscmFFSendDataFscmTFl(busVoltage);
 }
 void fscmFFDataToParseFromFscmT() {
   fscmRequestHomeSet = fscmFFParseDataFscmTBl();

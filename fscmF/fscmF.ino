@@ -1,11 +1,6 @@
 #include "fscmF.h"
 #include "fscmFFunctions.h"
 void setup() {
-  //  Serial.begin(2000000);
-  //  while (!Serial) {
-  //    ;
-  //  }
-  //  Serial.println("starting");
   pinMode(13, OUTPUT);
   pinMode(12, INPUT_PULLUP);
   fscmFFSetupSensors();

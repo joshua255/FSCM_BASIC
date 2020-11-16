@@ -238,6 +238,10 @@ void setupTelog() {
   telog.addColumn("fscmCRoll", Table.FLOAT);
   telog.addColumn("fscmFConnTime", Table.INT);
   telog.addColumn("fscmTConnTime", Table.INT);
+  telog.addColumn("inControl", Table.INT);
+  telog.addColumn("receiverOffline", Table.INT);
+  telog.addColumn("batVoltage", Table.FLOAT);
+  telog.addColumn("busVoltage", Table.FLOAT);
 }
 void recTelog() {
   TableRow telrow=telog.addRow();
@@ -286,6 +290,10 @@ void recTelog() {
   telrow.setFloat("fscmCRoll", fscmCRoll);
   telrow.setInt("fscmFConnTime", fscmFConnTime);
   telrow.setInt("fscmTConnTime", int(fscmDTConnTime));
+  telrow.setInt("inControl", int(inControl));
+  telrow.setInt("receiverOffline", int(receiverOffline));
+  telrow.setFloat("batVoltage", batVoltage);
+  telrow.setFloat("busVoltage", busVoltage);
 }
 void saveTelog() {
   saveTable(telog, "telog/FSCMlog"+(new Date()).getTime()+".csv");

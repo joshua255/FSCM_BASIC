@@ -7,9 +7,12 @@ fscmdMiBarGraphDisplay MBGBOG;
 fscmdMiBarGraphDisplay MBGBOM;
 fscmdPowerGraphDisplay PWG;
 fscmdCoBarGraphDisplay PWRCBG;
+fscmdPowerGraphDisplay batVoltGraph;
+fscmdCoBarGraphDisplay batVoltDisp;
 fscmdCoBarGraphDisplay FSCMDRSSI;
 fscmdCoBarGraphDisplay TRANSRSSI;
 fscmdCoBarGraphDisplay TBATCGD;
+fscmdCoBarGraphDisplay servoPowerDisp;
 fscmdButton BSH;
 fscmdButton TLB;
 fscmdButton SWPB;
@@ -88,6 +91,13 @@ float pointsWLon=0.00;
 float pointsWLat=0.00;
 float pointsWAlt=0.00;
 ////////////////////////////////////////////////////////////////////////////////////
+boolean inControl = false;
+boolean receiverOffline = false;
+boolean lastInControl=false;
+boolean lastReceiverOffline=false;
+float busVoltage = 0;
+float batVoltage = 0;
+
 void setup() {
   noSmooth();
   size(2470, 1300, P2D);//P2D is important
@@ -106,6 +116,9 @@ void setup() {
   MBGBOM=new fscmdMiBarGraphDisplay(120, 0, 35, 3, "BNO055 mag status");
   PWG=new fscmdPowerGraphDisplay(375, 0, 272, 100, 3.0, 4.2, 3000);
   PWRCBG=new fscmdCoBarGraphDisplay(PWG.posx-51, PWG.posy, PWG.sizey, 50, PWG.minval, PWG.maxval, 3.3, "BAT V");
+  batVoltGraph=new fscmdPowerGraphDisplay(1250, 0, 272, 200, 3.0*3, 4.2*3, 3000);
+  batVoltDisp=new fscmdCoBarGraphDisplay(batVoltGraph.posx-51, batVoltGraph.posy, batVoltGraph.sizey, 50, batVoltGraph.minval, batVoltGraph.maxval, 3.3*3, "BAT");
+  servoPowerDisp=new fscmdCoBarGraphDisplay(1125, 0, 200, 50, 4.5, 6.2, 5, "6v");
   FSCMDRSSI=new fscmdCoBarGraphDisplay(160, 2, 50, 50, -110, -35, -95, "FSCM");
   TRANSRSSI=new fscmdCoBarGraphDisplay(210, 2, 50, 50, -110, -35, -95, "Trans");
   //  TBATCGD=new fscmdCoBarGraphDisplay(370, 0, 80, 3.3, 6, 3.5, "T Bat");
@@ -120,7 +133,7 @@ void setup() {
   WAS=new fscmdSlider(243, 172, 20, color(200, 200, 20), "wrnA", WARNINGALT, -2, 10);
   WASM=new fscmdSlider(243, 184, 20, color(200, 20, 200), "maxA", WARNINGALT, 0, 150);
   fscmdSetupFscmTComms();//nothing needs to be called in draw()
-  frameRate(10);
+  frameRate(8);
 }
 void draw() {
   if (frameCount==1) {
@@ -168,6 +181,18 @@ void draw() {
     }
   }
   fscmdHomeSet();
+  if (frameCount!=1) {
+    if (inControl&&!lastInControl) { 
+      if (receiverOffline&&!lastReceiverOffline) {
+        s.write("in control. reciever off,#");
+      } else {
+        s.write("in control,#");
+      }
+    }
+    if (!inControl&&lastInControl) {
+      s.write("override,#");
+    }
+  }
   runWarnings();
   OTD.display(fscmFOriQuatW, fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFGpsHeading, fscmFGAlt, fscmHomeHeading, fscmFHeadFmHome, fscmFDistMeters, fscmFEul[0]);
   String[] dispMsg= {
@@ -209,7 +234,11 @@ void draw() {
     "r joy y", 
     "l joy x", 
     "l joy y", 
-    "enabled"
+    "enabled", 
+    "in control", 
+    "recvOffline", 
+    "f bat V", 
+    "servo V"
   };
   float[] dispVal= {
     int(fscmHomeSet), 
@@ -250,15 +279,34 @@ void draw() {
     fscmTRJYBVal, 
     fscmTLJXBVal, 
     fscmTLJYBVal, 
-    int(fscmTETVal)
+    int(fscmTETVal), 
+    int(inControl), 
+    int(receiverOffline), 
+    batVoltage, 
+    busVoltage 
   };
   noStroke();
   if (fscmTETVal) fill(255); 
   else fill(0, 155, 0);
-  rect(670, 20, 400, 200);
-  textSize(70);
+  rect(650, 0, 200, 100);
+  textSize(38);
   fill(0);
-  text(fscmTETVal?"ENABLED":"DISABLED", 700, 150);
+  text(fscmTETVal?"ENABLED":"DISABLED", 660, 55);
+
+  if (receiverOffline) fill(255, 90, 0); 
+  else fill(0, 155, 0);
+  rect(650, 120, 200, 100);
+  textSize(28);
+  fill(0);
+  text(receiverOffline?"RECEIVER OFFLINE":"RECEIVER WORKING", 660, 130, 200, 100);
+
+  if (inControl) fill(255); 
+  else fill(70, 175, 0);
+  rect(860, 10, 250, 200);
+  textSize(35);
+  fill(0);
+  text(inControl?"IN CONTROL":"OVERRIDDEN", 860, 150);
+
   fscmdDisplayInfo(dispMsg, dispVal, 0, 250, 249, 1049, 16);
   MBGBOO.display(fscmFOriSystemCal);
   MBGBOA.display(fscmFOriAccelCal);
@@ -273,9 +321,15 @@ void draw() {
   FSCMDRSSI.display(fscmFSigStrengthOfTran);
   TRANSRSSI.display(fscmTSigStrengthFromF);
   WARNINGALT=WAS.display(WARNINGALT);
+  batVoltGraph.display(batVoltage);
+  batVoltDisp.display(batVoltage);
+  servoPowerDisp.display(busVoltage);
+
   ALTITUDE_CEILING=WASM.display(ALTITUDE_CEILING);
   WAYPOINT_CLOSE_ENOUGH_DIST=WPCEDS.display(WAYPOINT_CLOSE_ENOUGH_DIST);
   runTelog();
+  lastInControl=inControl;
+  lastReceiverOffline=receiverOffline;
   mousePushed=false;
   keyPushed=false;
   homeSet=false;
@@ -326,6 +380,10 @@ void fscmdDataToParseFromFscmT() {
   fscmFWH=fscmdParseFscmTFl();
   fscmFWD=fscmdParseFscmTFl();
   fscmFWA=fscmdParseFscmTFl();
+  inControl=fscmdParseFscmTBl();
+  receiverOffline=fscmdParseFscmTBl();
+  batVoltage=fscmdParseFscmTFl();
+  busVoltage=fscmdParseFscmTFl();
 }
 void fscmdDataToSendToFscmT() {
   fscmdSendDataFscmTBl(setHome);
@@ -355,7 +413,7 @@ void runWarnings() {
   if (fscmFGAlt>=ALTITUDE_CEILING) {
     numWarnings++;
   }
-  if (millis()-lastwarnedbattery>30000||(millis()-lastwarnedbattery>10000&&fscmFBatVolt<3.4)) {
+  if (millis()-lastwarnedbattery>30000||(millis()-lastwarnedbattery>10000&&batVoltage<3.4*3)) {
     numWarnings++;
   }
   if (fscmTLTVal&&numWarnings==0) {
@@ -417,7 +475,7 @@ void runWarnings() {
         if (fscmTLBVal||warningID!=-8) {
           s.write("battery voltage"+",#");
         } else {
-          s.write(nf(fscmFBatVolt, 1, 1)+",#");
+          s.write(nf(batVoltage, 2, 1)+",#");
         }
         warningID=-8;
       } else if (fscmTLKBVal>=240&&fscmTLKBVal<256) {
@@ -469,9 +527,9 @@ void runWarnings() {
           s.clear();
         }
       } else if (warningID==4) {
-        if (millis()-lastwarnedbattery>30000||(millis()-lastwarnedbattery>10000&&fscmFBatVolt<3.4)) {
+        if (millis()-lastwarnedbattery>30000||(millis()-lastwarnedbattery>10000&&batVoltage<3.4*3)) {
           lastwarnedbattery=millis();
-          s.write("battery voltage "+nf(fscmFBatVolt, 1, 1)+",#");
+          s.write("battery voltage "+nf(batVoltage, 2, 1)+",#");
           s.clear();
         }
       }

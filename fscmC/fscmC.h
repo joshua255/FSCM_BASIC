@@ -21,3 +21,4 @@ const unsigned int controlThresh = 1700;
 const unsigned int controlTimeout = 500000;
 float busVoltsPerDAC = 0.00776;
 float batVoltsPerDAC = .03175;
+float smoothedThrottle = 1000.0;

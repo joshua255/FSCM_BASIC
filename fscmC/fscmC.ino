@@ -55,7 +55,8 @@ void loop() {
       }
       ailerons.writeMicroseconds(map(jrx, 0, 255, 1000, 2000));
       elevator.writeMicroseconds(map(jry, 0, 255, 1000, 2000));
-      throttle.writeMicroseconds(map(jly, 0, 255, 1000, 2000));
+      smoothedThrottle += constrain((float)map(jly, 0, 255, 1000, 2000) - smoothedThrottle, -1.0, 1.0);
+      throttle.writeMicroseconds(int(smoothedThrottle));
       rudder.writeMicroseconds(map(jlx, 0, 255, 1000, 2000));
 
     } else { //disabled
@@ -64,12 +65,14 @@ void loop() {
       ailerons.detach();
       elevator.detach();
       throttle.writeMicroseconds(1000);
+      smoothedThrottle = 1000;
       rudder.detach();
     }
   }
   else {//lost connection
     digitalWrite(13, (millis() / 250) % 2);
     //lost connection (disable)
+    smoothedThrottle = 1000;
     throttle.writeMicroseconds(1000);
   }
 }

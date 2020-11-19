@@ -22,8 +22,8 @@ void loop() {
   if (fscmHomeSet) {
     zeroGyro();
   }
-  busVoltage = analogRead(15) * busVoltsPerDAC;
-  batVoltage = analogRead(16) * batVoltsPerDAC;
+  busVoltage = busVoltage * .999 + .001 * analogRead(15) * busVoltsPerDAC;
+  batVoltage = batVoltage * .999 + .001 * analogRead(16) * batVoltsPerDAC;
   receiverOffline = micros() - controlPinFallTime > controlTimeout;
   if (!receiverOffline) {
     if (micros() - controlPinRiseTime > 2500) {//outside pulse

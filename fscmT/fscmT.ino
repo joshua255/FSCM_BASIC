@@ -24,7 +24,7 @@ void loop() {
 void fscmTFLedDisplay() {
   //rainbows!
 
-  fscmTFSetStatLed(ledTranBatStatID, CRGB(constrain(map(fscmFBatVolt * 1000, 3000, 4200, 100, 0), 0, 100), constrain(map(fscmFBatVolt * 1000, 3000, 4200, 0, 100), 0, 100), 0));
+  fscmTFSetStatLed(ledTranBatStatID, CRGB(constrain(map(fscmFBatVolt * 1000, 3500, 4200, 100, 0), 0, 100), constrain(map(fscmFBatVolt * 1000, 3500, 4200, 0, 100), 0, 100), 0));
   fscmTFSetStatLed(ledBatStatTopID, CRGB(constrain(map(batVoltage * 1000 / 3, 3800, 4200, 100, 0), 0, 100), constrain(map(batVoltage * 1000 / 3, 3800, 4200, 0, 100), 0, 100), 0));
   fscmTFSetStatLed(ledBatStatMidID, CRGB(constrain(map(batVoltage * 1000 / 3, 3400, 3800, 100, 0), 0, 100), constrain(map(batVoltage * 1000 / 3, 3400, 3800, 0, 100), 0, 100), 0));
   fscmTFSetStatLed(ledBatStatBotID, CRGB(constrain(map(batVoltage * 1000 / 3, 3000, 3400, 100, 0), 0, 255), constrain(map(batVoltage * 1000 / 3, 3000, 3400, 0, 100), 0, 100), 0));

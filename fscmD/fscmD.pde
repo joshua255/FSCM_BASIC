@@ -114,8 +114,8 @@ void setup() {
   MBGBOA=new fscmdMiBarGraphDisplay(50, 0, 35, 3, "BNO055 accel status");
   MBGBOG=new fscmdMiBarGraphDisplay(85, 0, 35, 3, "BNO055 gyro status");
   MBGBOM=new fscmdMiBarGraphDisplay(120, 0, 35, 3, "BNO055 mag status");
-  PWG=new fscmdPowerGraphDisplay(375, 0, 272, 100, 3.0, 4.2, 3000);
-  PWRCBG=new fscmdCoBarGraphDisplay(PWG.posx-51, PWG.posy, PWG.sizey, 50, PWG.minval, PWG.maxval, 3.3, "BAT V");
+  PWG=new fscmdPowerGraphDisplay(375, 0, 272, 100, 3.6, 4.2, 3000);
+  PWRCBG=new fscmdCoBarGraphDisplay(PWG.posx-51, PWG.posy, PWG.sizey, 50, PWG.minval, PWG.maxval, 3.685, "BAT V");
   batVoltGraph=new fscmdPowerGraphDisplay(1250, 0, 272, 200, 3.0*3, 4.2*3, 3000);
   batVoltDisp=new fscmdCoBarGraphDisplay(batVoltGraph.posx-51, batVoltGraph.posy, batVoltGraph.sizey, 50, batVoltGraph.minval, batVoltGraph.maxval, 3.3*3, "BAT");
   servoPowerDisp=new fscmdCoBarGraphDisplay(1125, 0, 200, 50, 4.5, 6.2, 5, "6v");

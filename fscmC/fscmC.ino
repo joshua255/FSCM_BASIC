@@ -58,7 +58,7 @@ void loop() {
       elevator.writeMicroseconds(map(jry, 0, 255, 2000, 1000));
       smoothedThrottle += constrain((float)map(jly, 0, 255, 1000, 2000) - smoothedThrottle, -1.0, 1.0);
       throttle.writeMicroseconds(int(smoothedThrottle));
-      rudder.writeMicroseconds(map(jlx, 0, 255, 1000, 2000));
+      rudder.writeMicroseconds(map(jlx, 0, 255, 1125, 1950));
 
     } else { //disabled
       digitalWrite(13, LOW);

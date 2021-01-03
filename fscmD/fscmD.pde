@@ -307,6 +307,12 @@ void draw() {
   fill(0);
   text(inControl?"IN CONTROL":"OVERRIDDEN", 860, 150);
 
+  fill(0);
+  textSize(55);
+  rect(1650, 100, 380, 100);
+  fill(0, 255, 0);
+  text(fscmFGpsSpeed+"m/s", 1660, 150);
+
   fscmdDisplayInfo(dispMsg, dispVal, 0, 250, 249, 1049, 16);
   MBGBOO.display(fscmFOriSystemCal);
   MBGBOA.display(fscmFOriAccelCal);

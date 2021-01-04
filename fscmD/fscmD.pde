@@ -132,7 +132,6 @@ void setup() {
   WPCEDS=new fscmdSlider(243, 160, 20, color(255, 0, 255), "wpce", WAYPOINT_CLOSE_ENOUGH_DIST, 0, 30); //  fscmdSlider(float X, float Y, float W, color C, String T, float VAL, float MIN, float MAX) 
   WAS=new fscmdSlider(243, 172, 20, color(200, 200, 20), "wrnA", WARNINGALT, -2, 10);
   WASM=new fscmdSlider(243, 184, 20, color(200, 20, 200), "maxA", WARNINGALT, 0, 150);
-  fscmdSetupFscmTComms();//nothing needs to be called in draw()
   frameRate(8);
 }
 void draw() {

@@ -660,8 +660,7 @@ void fscmdSetupFscmTComms() {
     fscmTS.bufferUntil('>');
   }
   catch(Exception e) {
-    println("no transmitter, stopping program!");
-    while (true);
+    println("no transmitter!");
   }
 }
 void fscmdHomeSet() {

@@ -139,6 +139,9 @@ void draw() {
   if (frameCount==1) {
     OTD.setUp();
   }
+  if (millis()-fscmDMillisGotTS>5000) {
+    fscmdSetupFscmTComms();
+  }
   noStroke();
   fill(15);
   rect(170, 101, 480, 147);

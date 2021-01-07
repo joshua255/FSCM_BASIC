@@ -313,7 +313,7 @@ void draw() {
   textSize(55);
   rect(1650, 100, 380, 100);
   fill(0, 255, 0);
-  text(fscmFGpsSpeed+"m/s", 1660, 150);
+  text(nf(fscmFGpsSpeed, 2, 1)+"m/s", 1660, 150);
 
   fscmdDisplayInfo(dispMsg, dispVal, 0, 250, 249, 1049, 16);
   MBGBOO.display(fscmFOriSystemCal);

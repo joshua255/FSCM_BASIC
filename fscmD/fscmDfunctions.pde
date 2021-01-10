@@ -217,6 +217,9 @@ void setupTelog() {
   telog.addColumn("fscmFOriQuatY", Table.FLOAT);
   telog.addColumn("fscmFOriQuatZ", Table.FLOAT);
   telog.addColumn("fscmFOriQuatW", Table.FLOAT);
+  telog.addColumn("fscmFHeading", Table.FLOAT);
+  telog.addColumn("fscmFPitch", Table.FLOAT);
+  telog.addColumn("fscmFRoll", Table.FLOAT);
   telog.addColumn("fscmFGAlt", Table.FLOAT);
   telog.addColumn("fscmFBatVolt", Table.FLOAT);
   telog.addColumn("fscmFSigStrengthOfTran", Table.INT);
@@ -269,6 +272,9 @@ void recTelog() {
   telrow.setFloat("fscmFOriQuatY", fscmFOriQuatY);
   telrow.setFloat("fscmFOriQuatZ", fscmFOriQuatZ);
   telrow.setFloat("fscmFOriQuatW", fscmFOriQuatW);
+  telrow.setFloat("fscmFHeading", fscmFEul[0]);
+  telrow.setFloat("fscmFPitch", fscmFEul[1]);
+  telrow.setFloat("fscmFRoll", fscmFEul[2]);
   telrow.setFloat("fscmFGAlt", fscmFGAlt);
   telrow.setFloat("fscmFBatVolt", fscmFBatVolt);
   telrow.setInt("fscmFSigStrengthOfTran", fscmFSigStrengthOfTran);

@@ -199,7 +199,6 @@ void setupTelog() {
   telog.addColumn("fscmHomeLat", Table.FLOAT);
   telog.addColumn("fscmHomeLon", Table.FLOAT);
   telog.addColumn("fscmHomeHeading", Table.FLOAT);
-  telog.addColumn("heading fm home", Table.FLOAT);
   telog.addColumn("fscmFSigStrengthOfTran", Table.INT);
   telog.addColumn("fscmTSigStrengthFromF", Table.INT);
   telog.addColumn("fscmFOriSystemCal", Table.INT);
@@ -254,7 +253,6 @@ void recTelog() {
   telrow.setFloat("fscmHomeLat", fscmHomeLat);
   telrow.setFloat("fscmHomeLon", fscmHomeLon);
   telrow.setFloat("fscmHomeHeading", fscmHomeHeading);
-  telrow.setFloat("fscmFHeadFmHome", fscmFHeadFmHome);
   telrow.setInt("fscmFSigStrengthOfTran", fscmFSigStrengthOfTran);
   telrow.setInt("fscmTSigStrengthFromF", fscmTSigStrengthFromF);
   telrow.setInt("fscmFOriSystemCal", fscmFOriSystemCal);
